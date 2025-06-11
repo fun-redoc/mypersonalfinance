@@ -1,0 +1,120 @@
+ /* ---- misc ---- */
+ .centered {
+    display: flex; /* Enable flexbox */
+    flex-direction: column; /* Stack items vertically */
+    align-items: center; /* Vertically center */
+    margin:0.2rem;
+  /*   border: 1px solid red; Optional: for visualization */
+ }
+ /* -------------- */
+
+/* ---- error handling ---- */
+.error-message {
+    background-color: rgba(128, 0, 0, 0.7);
+    color: #ffffff;
+    padding: 10px;
+    border-radius: 3px;
+    text-align: center;
+    margin-bottom: 20px;
+}
+.logout-message {
+    background-color: rgba(0, 0, 128, 0.7);
+    color: #ffffff;
+    padding: 10px;
+    border-radius: 3px;
+    text-align: center;
+    margin-bottom: 20px;
+}
+.error {
+  color: red;
+}
+/* ------------------------ */
+
+
+/* ---- sort indidator for table cols ---- */
+
+ /* Style for the sortable column headers */
+ th.sortable {
+   cursor: pointer;
+   position: relative;
+   padding-right: 18px; /* Space for the indicator */
+ }
+
+ th.sortable:hover {
+   color: var(--primary-color); /* Highlight header on hover */
+ }
+
+ /* Default indicator (down arrow) */
+ th.sortable::after {
+   content: "▼"; /* Downward arrow */
+   position: absolute;
+   right: 5px; /*  Space from the edge */
+   font-size: 0.8em;
+   opacity: 0.3; /* Faded indicator */
+   transition: transform 0.2s ease, opacity 0.2s ease;
+ }
+
+ /* Rotate indicator for ascending sort */
+ th.sortable.asc::after {
+   transform: rotate(180deg); /* Flip arrow */
+   opacity: 1; /* Make it fully visible */
+ }
+
+ /* Style for descending sort */
+ th.sortable.desc::after {
+   transform: rotate(0deg); /* Keep arrow downwards */
+   opacity: 1; /* Make it fully visible */
+ }
+/* --------------------------------------- */
+
+/* ---- tags input ---- */
+.tags {
+  float: left;
+  border: 1px solid #ccc;
+  padding-left: 4px;
+  padding-bottom: 4px;
+  /*
+  font-family: Arial;
+  */
+}
+
+.tags .tag {
+  cursor: pointer;
+  display: flex;
+  position: relative;
+  padding:7px;
+  margin:4px 4px 0px -1.125px;
+  place-items: center;
+  line-height: var(--pico-line-height);
+  height: calc(1rem* var(--pico-line-height) + var(--pico-form-element-spacing-vertical)* 2 + var(--pico-border-width)* 2);
+
+  float: left;
+  color: var(--pico-code-kbd-color);
+  background: var(--pico-code-kbd-background-color);
+
+  border-radius: var(--pico-border-radius);
+}
+
+.tags .tag:hover {
+  opacity: 0.7;
+  /*color: var(--primary-color);*/
+}
+
+.tags .tag::after {
+  content: "×";
+  position: absolute;
+  right:5px;
+  border: 1px solid;
+  border-radius: 10px;
+  padding: 0 4px;
+  margin: 3px 0 10px 7px;
+  font-size: 0.8em;
+}
+
+.tags input {
+  border: 0;
+  margin: 4px;
+  padding: 7px;
+  width: auto;
+}
+/* ---------------------*/

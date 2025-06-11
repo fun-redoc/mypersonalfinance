@@ -5,6 +5,7 @@ import org.springframework.ui.Model;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import rsh.conf.JteLocalizer;
 
 import java.util.ArrayList;
 
@@ -20,4 +21,7 @@ public class JteControllerAdvice {
     public void csrf(Model model, CsrfToken csrf) {
         model.addAttribute("csrf", csrf);
     }
+
+    @ModelAttribute
+    public void localizer(Model model, JteLocalizer localizer) {model.addAttribute("localizer", localizer);}
 }

@@ -25,15 +25,17 @@ public class OttMail {
             var builder =
                     UriComponentsBuilder
                             .fromUriString(UrlUtils.buildFullRequestUrl(currentRequest))
-                            .replacePath("/login/ott")
-                            .replaceQuery(null)
-                            .fragment(null)
-                            //.path("/login/ott")
-                            .queryParam("token", token);
+                            .replacePath("/login/ott");
+            String bareUrl = builder.toUriString();
+
+            builder.replaceQuery(null)
+                    .fragment(null)
+                    //.path("/login/ott")
+                    .queryParam("token", token);
 
             String link = builder.toUriString();
 
-            emailService.sendEmail(email,user, link);
+            emailService.sendEmail(email, bareUrl, user, token,  link);
         }
 
     }

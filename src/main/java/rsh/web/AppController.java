@@ -16,6 +16,9 @@ import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
+import org.springframework.context.support.ResourceBundleMessageSource;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -27,6 +30,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.support.SessionStatus;
+import rsh.conf.JteLocalizer;
 import rsh.conf.WebAuthnProperties;
 import rsh.user.UserEntity;
 import rsh.user.UserService;
@@ -48,6 +52,9 @@ public class AppController {
 
     //@Autowired
     //EmailService emailService;
+
+    @Autowired
+    MessageSource messageSource;
 
     @GetMapping(value =  "/" )
     public String geRoot(
@@ -131,6 +138,8 @@ public class AppController {
             HttpSession httpSession,
             Principal principal
     )  {
+        var locale = LocaleContextHolder.getLocale();
+        var defaultErrorMessage = messageSource.getMessage("registration.error.default", null, locale);
         if (bindingResult.hasErrors()) {
             for(var r:bindingResult.getFieldErrors()) {
                 errors.add(r);
@@ -138,21 +147,25 @@ public class AppController {
             return "registration";
         }
         if(username==null || username.length()==0) {
-            errors.add(new FieldError("username","username", "username is mandatory."));
+            var message = messageSource.getMessage("registration.error.username.missing", null, locale);
+            errors.add(new FieldError("username","username", message));
             return "registration";
         }
         if(email==null || email.length()==0) {
-            errors.add(new FieldError("email","email", "email is mandatory."));
+            var message = messageSource.getMessage("registration.error.email.missing", null, locale);
+            errors.add(new FieldError("email","email", message));
             return "registration";
         }
         if(!email.equals(httpSession.getAttribute("email"))) {
-            System.err.println(String.format("tempered email, given:%s expected:%s",email, httpSession.getAttribute("email")));
-            errors.add(new FieldError("email","email", "email is not authenticated."));
+            var message = messageSource.getMessage("registration.error.email.tampered", null, locale);
+            System.err.println(String.format("tampered email, given:%s expected:%s",email, httpSession.getAttribute("email")));
+            errors.add(new FieldError("email","email", message));
             return "registration";
         }
         if(!username.equals(httpSession.getAttribute("username"))) {
-            System.err.println(String.format("tempered username, given:%s expected:%s",username, httpSession.getAttribute("username")));
-            errors.add(new FieldError("username","username", "username is not authenticated."));
+            var message = messageSource.getMessage("registration.error.username.tampered", null, locale);
+            System.err.println(String.format("tampered username, given:%s expected:%s",username, httpSession.getAttribute("username")));
+            errors.add(new FieldError("username","username", message));
             return "registration";
         }
         model.addAttribute("webAuthnProperties", this.webAuthnProperties);
@@ -188,11 +201,11 @@ public class AppController {
             return "redirect:/login/passkey";
         } catch (JsonProcessingException e) {
             System.err.println(e);
-            errors.add(new FieldError("errors","errors", e.getMessage()));
+            errors.add(new FieldError("errors","errors", defaultErrorMessage));
             return "registration";
         } catch (Exception e) {
             System.err.println(e);
-            errors.add(new FieldError("errors","errors", e.getMessage()));
+            errors.add(new FieldError("errors","errors", defaultErrorMessage));
             return "registration";
         }
     }
@@ -224,6 +237,8 @@ public class AppController {
             SessionStatus sessionStatus,
             HttpSession session
     ) {
+        var locale = LocaleContextHolder.getLocale();
+        var defaultErrorMessage = messageSource.getMessage("login.passkey.error.default", null, locale);
         ObjectMapper objectMapper = new ObjectMapper();
         String credentialId = null;
         try {
@@ -233,7 +248,7 @@ public class AppController {
             credentialId = (String)assertion.get("id");
         } catch (JsonProcessingException e) {
             System.err.println(e);
-            errors.add(new FieldError("errors","errors", e.getMessage()));
+            errors.add(new FieldError("errors","errors", defaultErrorMessage));
             return "login";
         }
 
@@ -241,7 +256,7 @@ public class AppController {
         if(maybeUserEntity.isEmpty()) {
             var errmsg = String.format("No user for credentials id:%s", credentialId);
             System.err.println(errmsg);
-            errors.add(new FieldError("errors","errors", errmsg));
+            errors.add(new FieldError("errors","errors", defaultErrorMessage));
             return "login";
         }
         var userEntity = maybeUserEntity.get();
@@ -254,7 +269,7 @@ public class AppController {
         }
         catch (DataConversionException e) {
             System.err.println(e.getMessage());
-            errors.add(new FieldError("errors","errors", "Error accessing registration data."));
+            errors.add(new FieldError("errors","errors", defaultErrorMessage));
             return "login";
         }
 
@@ -265,7 +280,7 @@ public class AppController {
             authenticationData = webAuthnManager.parseAuthenticationResponseJSON(assertionJSONString);
         } catch (DataConversionException e) {
             System.err.println(e.getMessage());
-            errors.add(new FieldError("errors","errors", "Error accessing registration data."));
+            errors.add(new FieldError("errors","errors", defaultErrorMessage));
             return "login";
         }
 
@@ -300,7 +315,7 @@ public class AppController {
             webAuthnManager.verify(authenticationData, authenticationParameters);
         } catch (VerificationException e) {
             System.err.println(e.getMessage());
-            errors.add(new FieldError("errors","errors", "Error accessing registration data."));
+            errors.add(new FieldError("errors","errors", defaultErrorMessage));
             return "login";
         }
 // TODO please update the counter of the authenticator record

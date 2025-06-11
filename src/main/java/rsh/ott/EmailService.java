@@ -27,10 +27,14 @@ public class EmailService {
         this.templateEngine = TemplateEngine.create(codeResolver, ContentType.Html);
     }
 
-    public void sendEmail(String to, String name, String link) {
+    public void sendEmail(String to, String bareUrl, String name, String token, String link) {
         // Generate email content using JTE
         StringOutput output = new StringOutput();
-        templateEngine.render("ottmail.jte", Map.of("target", link, "name", name),output);
+        templateEngine.render("ottmail.jte", Map.of("bareUrl", bareUrl,
+                                                          "target", link,
+                                                          "name", name,
+                                                          "token", token),
+                                output);
         String emailContent = output.toString();
 
         // Send email

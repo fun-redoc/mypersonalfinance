@@ -1,0 +1,140 @@
+async function yFinApiRequest(apiKey, queryParams, abortController) // returns Promise
+{
+      const headers = new Headers();
+      headers.append("accept", "application/json");
+      headers.append("X-API-KEY", apiKey);
+      const service = `https://yfapi.net/`
+      const query = service + queryParams
+      console.log("api_request query", query)
+      console.log("api_request headers", JSON.stringify(headers) )
+      headers.forEach((v,k) => console.log(`header key ${k} : value ${v}`))
+      try {
+        const response = await fetch(query, {
+          method: "get",
+          headers: headers,
+          mode: "cors",
+          cache: "no-cache",
+          signal: abortController?.signal,
+        });
+        console.log("api_request response", response)
+        if (response.status === 401 || response.status === 403) {
+          console.log("api_request response nok")
+          throw {
+            status: response.status,
+            statusText: response.statusText,
+          };
+        }
+        if (!response.ok) {
+          console.log("api_request response ok")
+          throw {
+            status: response.status,
+            statusText: response.statusText,
+          };
+        }
+        const result = await response.json();
+        console.log("api_request result", result)
+        if (Object.prototype.hasOwnProperty.call(result, "error")) {
+          console.log("api_request result hase error branch")
+          console.error(result.error);
+          throw new Error(result.error);
+        }
+        return result;
+      } catch (error) {
+        console.log("api_request error caught for query", query)
+        console.error(error);
+        //throw new Error("failed to fetch data.");
+        throw error;
+      }
+}
+const yFinApiChartParamsRanges= ["1d" ,"5d" ,"1d" ,"5d" ,"1mo","3mo","6mo","1y" ,"5y" ,"10y","ytd","max"]
+const yFinApiChartParamsIntervals= ["1m"  ,"5m"  ,"15m" ,"1d"  ,"1wk" ,"1mo"]
+const yFinApiChartParamsEvents= ["div" , "split" , "div,split", null]
+class yFinApiChartParams {
+  range;
+  interval;
+  event
+}
+//export const api_getChart = async (apiKey:string, symbol:string, chartParams:ChartParams, abortController?:AbortController) : Promise<YFinChartResult> => {
+async function yFinApiGetChart(apiKey, symbol, chartParams, abortController) {
+     const query = `v8/finance/chart/${symbol}?region=DE&lang=de&range=${chartParams.range}&interval=${chartParams.interval}${chartParams.event ? "&events=" + chartParams.event : ""}`;
+     return yFinApiRequest(apiKey, query, abortController)
+       .then(response => response.chart.result[0] )
+}
+
+//export type FNFetchBatch =  (batchOfSymbols:string[], abortController?:AbortController) => Promise<YFinQuoteResult[]>
+//export const api_getAssetBatch = (apiKey:string) => {
+function vFinApiGetAssetBatch(apiKey) {
+  const MAX_BATCH_SIZE = 10;
+  //async function api_fetchBatch(batchOfSymbols:string[], abortController?:AbortController) : Promise<YFinQuoteResult[]> {
+  //const api_fetchBatch : FNFetchBatch =
+  //  async (batchOfSymbols:string[], abortController?:AbortController) : Promise<YFinQuoteResult[]>  => {
+  const api_fetchBatch =
+    async (batchOfSymbols, abortController) => {
+      const symbols=batchOfSymbols.join(',')
+      const query = `v6/finance/quote?region=DE&lang=de&symbols=${encodeURIComponent(symbols)}`;
+      return api_request<any>(apiKey, query, abortController)
+        .then(response => response["quoteResponse"]["result"] )
+  }
+  return { MAX_BATCH_SIZE, fetchBatch:api_fetchBatch };
+}
+
+//export interface QueryParam {
+//    query:string
+//}
+
+//export function fetchYFinQuery(apiKey:string, {query}:QueryParam, abortController?:AbortController): Promise<YFinQuoteResult[]> {
+async function fetchYFinQuery(apiKey, query, abortController) {
+    console.log("fetchYFinQuery")
+    const uri = `v6/finance/autocomplete?region=DE&lang=de&query=${query}`;
+    return yFinApiRequest(apiKey, uri, abortController)
+        .then(response => {
+            console.log("response received")
+            const autocompl = response["ResultSet"]["Result"]
+            const maxBatch = 10 // defined by the api: https://financeapi.net/yh-finance-api-specification.json
+            let [batches, rest] = autocompl.reduce((acc, a, i) => {
+                if(i !== 0 && i % maxBatch === 0) {
+                    return [acc[0].concat(acc[1]), []]
+                } else {
+                    return [acc[0], acc[1].concat([a.symbol])]
+                }
+            }, [[],[]])
+            if(rest.length > 0) {
+              batches.push(rest)
+            } else {
+              // fallback, if the autocmplete api returns nothing, treat the query as a symbol, maybe
+              // the following call to quote api will return somethiong meeningfull
+              // this e.g. the case for BTC-USD
+              batches.push([query])
+            }
+            console.log("[- batches --")
+            console.log(JSON.stringify(batches))
+            console.log("-- batches -]")
+            const batchPromisses = batches.map(batch => {
+                const symbols=batch.join(',')
+                const uri = `v6/finance/quote?region=DE&lang=de&symbols=${encodeURIComponent(symbols)}`;
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                return yFinApiRequest(apiKey, uri, abortController)
+                        .then(response => response["quoteResponse"]["result"])
+            })
+            const res = Promise.all(
+                 batchPromisses.flatMap(async (s) => {
+                    return new Promise((resolve, reject) => {
+                        return s.then(
+                            (success) => resolve(success),
+                            (fail) => {
+                                abortController?.abort()
+                                reject(fail)
+                            }
+                        )
+                })})
+            ).then(result => {
+                const res = result.flatMap(r => r)
+                return res
+            })
+            return res
+        })
+        .catch(reason => {
+            console.error(reason)
+            throw reason
+        })
+}

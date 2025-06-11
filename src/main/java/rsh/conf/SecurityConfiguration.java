@@ -33,6 +33,7 @@ public class SecurityConfiguration {
         return httpSecurity
                 .authorizeHttpRequests(auth-> auth
                         .requestMatchers(HttpMethod.GET,"/*.js").permitAll()
+                        .requestMatchers(HttpMethod.GET,"/*.css").permitAll()
                         .requestMatchers(HttpMethod.GET,"/favicon.ico").permitAll()
                         .requestMatchers(HttpMethod.GET,"/").permitAll()
                         .requestMatchers("/sendEmail").permitAll()
@@ -44,6 +45,8 @@ public class SecurityConfiguration {
                         .requestMatchers("/ott/fail").permitAll()
                         .requestMatchers("/login/passkey").permitAll()
                         .requestMatchers("/error").permitAll()
+                        // TODO only in development
+                        .requestMatchers("/.well-known/appspecific/com.chrome.devtools.json").permitAll()
                         .anyRequest().authenticated()
                 )
                 //.formLogin(Customizer.withDefaults())
@@ -76,7 +79,7 @@ public class SecurityConfiguration {
                     .authenticationSuccessHandler(new SimpleUrlAuthenticationSuccessHandler("/registration"))
                     .showDefaultSubmitPage(false);
                 })
-                .addFilterBefore(new MySecurityFilter(), FilterSecurityInterceptor.class)
+                //.addFilterBefore(new MySecurityFilter(), FilterSecurityInterceptor.class)
                 .logout(logout -> logout
                         .invalidateHttpSession(true)
                         .clearAuthentication(true)
