@@ -2,6 +2,7 @@ package rsh.user;
 
 import jakarta.persistence.*;
 import lombok.*;
+import rsh.domain.owner.OwnerEntity;
 
 import java.util.Set;
 
@@ -44,6 +45,12 @@ public class UserEntity {
 
     @Column(name="challenge")
     private  String challenge;
+
+    @PrimaryKeyJoinColumn
+    @ManyToMany(mappedBy = "users", fetch = FetchType.LAZY)
+    @ToString.Exclude
+    @EqualsAndHashCode.Exclude
+    private Set<OwnerEntity> owners;
 
     @Override
     public String toString() {

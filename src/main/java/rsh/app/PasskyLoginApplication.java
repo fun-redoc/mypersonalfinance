@@ -9,8 +9,8 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 @SpringBootApplication
 //@ComponentScan(basePackages = {"rsh.conf", "rsh.user", "rsh.ott", "rsh.web"})
 @ComponentScan(basePackages = {"rsh.**"})
-@EnableJpaRepositories(basePackages = {"rsh.user"})
-@EntityScan(basePackages = {"rsh.user"})
+@EnableJpaRepositories(basePackages = {"rsh.user","rsh.domain.**"})
+@EntityScan(basePackages = {"rsh.user", "rsh.domain.**"})
 public class PasskyLoginApplication {
 
 	public static void main(String[] args) {
