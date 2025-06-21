@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.test.context.ActiveProfiles;
 import rsh.domain.account.AccountEntity;
 import rsh.domain.account.AccountRepository;
@@ -268,9 +269,9 @@ class JpaTests {
 										.belongsTo(owner.get())
 										.name("test deposit with flat interest of 2.5% over 2 years")
 										.account(account0.get())
-										.posts(Set.of(post1, post2))
+										.posts(new HashSet<PostEntity>())
 										.tags(new HashSet<TagEntity>())
-										.build().addTag(tag1).addTag(tag2));
+										.build().addTag(tag1).addTag(tag2).addPost(post1).addPost(post2));
 		assertThat(deposit1).isNotNull().hasFieldOrPropertyWithValue("id", 1L);
 		var deposit2 = depositRepository
 				.save(
@@ -281,18 +282,20 @@ class JpaTests {
 								.belongsTo(owner.get())
 								.name("test deposit2 with flat interest of 2.5% over 2 years")
 								.account(account0.get())
-								.posts(Set.of(post3))
+								.posts(new HashSet<>())
 								.tags(new HashSet<TagEntity>())
-								.build().addTag(tag2).addTag(tag3));
+								.build().addTag(tag2).addTag(tag3).addPost(post3));
 		assertThat(deposit1).isNotNull().hasFieldOrPropertyWithValue("id", 1L);
 
 		// test find all deposits to a tag
 		var depositsForTag3 = depositRepository.findByTag(tag2);
 		assertThat(depositsForTag3).size().isEqualTo(2);
 
-		// TODO test calc total amount of a deposit consisting of several posts
+		// test calc total amount of a deposit consisting of several posts
 		var totalAmountOfDeposit1 = depositRepository.totalAmountOf(deposit1);
-		assertThat(totalAmountOfDeposit1).hasValue(BigDecimal.valueOf(2));
+		assertThat(totalAmountOfDeposit1.orElse(null)).isEqualByComparingTo(BigDecimal.valueOf(2D));
+		// CAVET: for some unclear reason jpa returns 2.00 not 2.0, what's going on here?
+		assertThat(totalAmountOfDeposit1.map(t->t.compareTo(BigDecimal.valueOf(2D)))).hasValue(0);
 
 		// TODO test find all deposits for an account
 

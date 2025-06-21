@@ -2,10 +2,7 @@ package rsh.domain.account.deposit;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import rsh.domain.account.AccountEntity;
 import rsh.domain.owner.OwnerEntity;
 import rsh.domain.account.post.PostEntity;
@@ -20,6 +17,8 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "deposits")
+@EqualsAndHashCode(exclude = { "posts"}) // This,
+@ToString(exclude = { "posts"})
 public class DepositEntity {
     @Id
     @SequenceGenerator(name = "deposit_seq", sequenceName = "deposit_seq", initialValue = 1, allocationSize = 1)
@@ -46,7 +45,8 @@ public class DepositEntity {
     @ManyToOne(cascade = CascadeType.ALL)
     private InterestEntity interest;
 
-    @OneToMany(mappedBy = "deposit", fetch = FetchType.LAZY)
+    //@OneToMany(mappedBy = "deposit",  fetch = FetchType.LAZY)
+    @OneToMany(fetch = FetchType.LAZY)
     private Set<PostEntity> posts;
 
     @ManyToMany(fetch = FetchType.LAZY, cascade = { CascadeType.ALL })

@@ -1,4 +1,15 @@
 spring:
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: <login user to smtp server>
+    password: <login password to smtp server>
+    properties:
+      mail:
+        smtp:
+          auth: true
+          startTls:
+            enable: true
   datasource:
     url: jdbc:h2:mem:testdb
     driver-class-name: org.h2.Driver

@@ -1,10 +1,7 @@
 package rsh.domain.account.post;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import rsh.domain.account.AccountEntity;
 import rsh.domain.account.deposit.DepositEntity;
 import rsh.domain.owner.OwnerEntity;
