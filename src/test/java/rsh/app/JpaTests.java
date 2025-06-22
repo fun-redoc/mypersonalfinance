@@ -90,9 +90,9 @@ class JpaTests {
 
 	}
 
-	@BeforeEach
+	@BeforeAll
 	@Transactional
-	public  void startup(@Autowired UserRepository userRepository,
+	public static  void startup(@Autowired UserRepository userRepository,
 							   @Autowired OwnerRepository ownerRepository,
 							   @Autowired AccountRepository accountRepository) {
 		logger.info("<<<<< startup ");
@@ -298,10 +298,29 @@ class JpaTests {
 		assertThat(totalAmountOfDeposit1.map(t->t.compareTo(BigDecimal.valueOf(2D)))).hasValue(0);
 
 		// TODO test find all deposits for an account
+		var depositsForAccount0 = accountRepository.allDepositsWithPostings(account0.get());
+		assertThat(depositsForAccount0).size().isEqualTo(2);
+		assertThat(depositsForAccount0.get(0).getTags()).size().isEqualTo(2);
+		assertThat(depositsForAccount0.get(0).getPosts()).size().isEqualTo(2);
+
+		var depositsForAccount1 = accountRepository.allDepositsWithPostings(account1.get());
+		assertThat(depositsForAccount1).size().isEqualTo(0);
 
 		// TODO check incosistency: deposit posting not with the deposit account as destination account of posting
 
+
 		logger.info("deposits >>>>>");
+	}
+
+	@Test
+	public void accountsDeposits() {
+		logger.info("<<<<< accountsDeposits ");
+		var account0 = accountRepository.findById(1L);
+		var depositsForAccount0 = accountRepository.allDepositsWithPostings(account0.get());
+		assertThat(depositsForAccount0).size().isEqualTo(2);
+		assertThat(depositsForAccount0.get(0).getTags()).size().isEqualTo(2);
+		assertThat(depositsForAccount0.get(0).getPosts()).size().isEqualTo(2);
+		logger.info("accountsDeposits >>>>>");
 	}
 
 

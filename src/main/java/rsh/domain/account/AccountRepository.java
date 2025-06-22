@@ -3,6 +3,7 @@ package rsh.domain.account;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import rsh.domain.account.deposit.DepositEntity;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -23,4 +24,12 @@ public interface AccountRepository extends JpaRepository<AccountEntity, Long> {
             ") as movements"
     )
     Optional<BigDecimal> balance(@Param("account") AccountEntity account);
+
+    @Query("""
+            select d from DepositEntity d
+                    left join fetch d.posts 
+                    left join fetch d.tags
+                where d.account = :a
+           """)
+    List<DepositEntity> allDepositsWithPostings(@Param("a") AccountEntity accountEntity);
 }
