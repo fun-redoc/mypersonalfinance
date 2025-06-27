@@ -1,6 +1,7 @@
 package rsh.app;
 
 import jakarta.transaction.Transactional;
+import org.aspectj.lang.annotation.Before;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -21,6 +22,10 @@ import rsh.domain.account.deposit.TagEntity;
 import rsh.domain.account.deposit.TagRepository;
 import rsh.domain.account.deposit.interest.FlatInterestEntity;
 import rsh.domain.account.deposit.interest.InterestRepository;
+import rsh.domain.account.wealth.WealthEntity;
+import rsh.domain.account.wealth.WealthRepository;
+import rsh.domain.account.wealth.purchase.PurchaseEntity;
+import rsh.domain.account.wealth.purchase.PurchaseRepository;
 import rsh.domain.aggregates.Balance;
 import rsh.domain.owner.OwnerEntity;
 import rsh.domain.owner.OwnerRepository;
@@ -30,10 +35,7 @@ import rsh.user.UserEntity;
 import rsh.user.UserRepository;
 
 import java.math.BigDecimal;
-import java.util.Calendar;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.*;
@@ -51,6 +53,7 @@ import static org.assertj.core.api.Assertions.*;
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE) // Optional: Use real DB
 class JpaTests {
 	private static final Logger logger = LoggerFactory.getLogger(JpaTests.class);
+	public static final int NUM_PURCHASES_FOR_WEALTH_1 = 5;
 	private static List<String> ibans = List.of(
 			"DE02120300000000202051",
 			"DE02500105170137075030",
@@ -81,6 +84,10 @@ class JpaTests {
 	DepositRepository depositRepository;
 	@Autowired
 	InterestRepository interestRepository;
+	@Autowired
+	WealthRepository wealthRepository;
+	@Autowired
+	PurchaseRepository purchaseRepository;
 
 	@Autowired
 	Balance balance;
@@ -313,15 +320,64 @@ class JpaTests {
 	}
 
 	@Test
-	public void accountsDeposits() {
+	public void accountsNoDeposits() {
 		logger.info("<<<<< accountsDeposits ");
 		var account0 = accountRepository.findById(1L);
 		var depositsForAccount0 = accountRepository.allDepositsWithPostings(account0.get());
-		assertThat(depositsForAccount0).size().isEqualTo(2);
-		assertThat(depositsForAccount0.get(0).getTags()).size().isEqualTo(2);
-		assertThat(depositsForAccount0.get(0).getPosts()).size().isEqualTo(2);
+		assertThat(depositsForAccount0).size().isEqualTo(0);
+		assertThatExceptionOfType(IndexOutOfBoundsException.class).isThrownBy(()->
+				depositsForAccount0.get(0)
+		);
+		assertThatExceptionOfType(IndexOutOfBoundsException.class).isThrownBy(()->
+				depositsForAccount0.get(0)
+		);
 		logger.info("accountsDeposits >>>>>");
 	}
 
+	@Test
+	void purchaseAndWealth() {
+		var group1 = ownerRepository.findOwnerByName("group1");
+		assertThat(group1).isPresent().map(o->o.getName()).hasValue("group1");
+		var wealth1 = WealthEntity.builder()
+				.wkn("0815")
+				.isin("4711")
+				.belongsTo(group1.get())
+				.symbol("P911.DE")
+				.name("Porsch")
+				.build();
+		wealth1 = wealthRepository.save(wealth1);
+		var wealth2= WealthEntity.builder()
+				.wkn("112")
+				.isin("112112")
+				.belongsTo(group1.get())
+				.symbol("VOW.DE")
+				.name("VW")
+				.build();
+		wealth2= wealthRepository.save(wealth2);
+
+		var purchases = new ArrayList<PurchaseEntity>();
+		for(int i = 0; i< NUM_PURCHASES_FOR_WEALTH_1; i++) {
+			purchases.add( PurchaseEntity.builder()
+					.fee(BigDecimal.ONE)
+					.units(10L)
+					.bank("Hello Bank")
+					.pricePerUnit(BigDecimal.valueOf(12))
+					.belongsTo(group1.get())
+					.date(Calendar.getInstance().getTime())
+					.build());
+			purchases.get(i).setWealthEntity(wealth1);
+		}
+		purchaseRepository.saveAll(purchases);
+
+		var allPurchasesToAWealth = wealthRepository.allPurchasesForWealth(wealth1);
+
+		assertThat(allPurchasesToAWealth).size().isEqualTo(NUM_PURCHASES_FOR_WEALTH_1);
+
+		var wealthCostOfPurchase = wealthRepository.wealthCostOfPurchase(wealth1);
+
+		assertThat(wealthCostOfPurchase).map(val -> val.compareTo(BigDecimal.valueOf(NUM_PURCHASES_FOR_WEALTH_1*(10*12+1)))).hasValue(0);
+
+
+	}
 
 }
