@@ -11,12 +11,6 @@
 currentMenu = JteControllerAdvice.MenuItem.ACOOUNTS,
 page = localizer.localize("accounts.page"),
 content = @`
-    <p><strong>${localizer.localize("accounts.welcome")}</strong></p>
-
-    @for(var account:accounts)
-        <p>${account.getName()}</p>
-    @endfor
-
     <!-- List of Accounts -->
     @if(accounts.isEmpty())
         <p>${localizer.localize("accounts.empty")}</p>

@@ -82,4 +82,5 @@ public interface AccountRepository extends JpaRepository<AccountEntity, Long> {
                 where d.account = :a
            """)
     List<DepositEntity> allDepositsWithPostings(@Param("a") AccountEntity accountEntity);
+
 }

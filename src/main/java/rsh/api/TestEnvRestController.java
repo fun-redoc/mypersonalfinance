@@ -6,13 +6,18 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import rsh.domain.account.AccountEntity;
 import rsh.domain.account.AccountRepository;
+import rsh.domain.account.post.PostEntity;
+import rsh.domain.account.post.PostRepository;
 import rsh.domain.owner.OwnerEntity;
 import rsh.domain.owner.OwnerRepository;
 import rsh.user.UserEntity;
 import rsh.user.UserRepository;
+import rsh.user.UserService;
 
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.security.SecureRandom;
 import java.util.Arrays;
@@ -26,7 +31,11 @@ public class TestEnvRestController {
         @Autowired
         AccountRepository accountRepository;
         @Autowired
+        PostRepository postRepository;
+        @Autowired
         UserRepository userRepository;
+        @Autowired
+        UserService userService;
         @Autowired
         OwnerRepository ownerRepository;
 
@@ -68,9 +77,25 @@ public class TestEnvRestController {
                                         .name("ACCOUNT " + accountType.name())
                                         .build();
                         }
-                ).forEach(a -> {
-                        accountRepository.save(a);
+                ).map(a -> {
+                        return accountRepository.save(a);
+                }).forEach(a -> {
+                        var fromAccount
+                                = accountRepository
+                                        .findByUser(userService.getUserEntity())
+                                        .stream()
+                                        .filter(fa -> fa.getAccountType() == AccountEntity.AccountType.BANK)
+                                        .findFirst()
+                                        .orElseThrow();
+                        var post = PostEntity.builder()
+                                .amount(BigDecimal.TEN)
+                                .fromAccount(fromAccount)
+                                .toAccount(a)
+                                .date(Calendar.getInstance().getTime())
+                                .build();
+                        postRepository.save(post);
                 });
+                ;
 
             return "Some Testdata generated";
         }
