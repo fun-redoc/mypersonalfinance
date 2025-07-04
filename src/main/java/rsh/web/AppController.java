@@ -47,7 +47,8 @@ public class AppController {
 
     @ModelAttribute("accounts")
     public List<AccountRepository.AccountsBaseData> getModelAttributeAllAccounts() {
-        return accountRepository.findBaseWithBalanceByUser(userService.getUserEntity());
+        var accounts =  accountRepository.findBaseWithBalanceByUser(userService.getUserEntity());
+        return accounts;
     }
     @GetMapping(value = "/accounts")
     public String getAccounts() {

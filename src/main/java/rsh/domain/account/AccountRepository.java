@@ -25,7 +25,8 @@ public interface AccountRepository extends JpaRepository<AccountEntity, Long> {
         Date getDateClosed();
         Long getOwnerId();
         String getOwnerName();
-        BigDecimal getBalance();
+        BigDecimal getKred();
+        BigDecimal getDeb();
     }
 
     @Query("""
@@ -65,13 +66,8 @@ public interface AccountRepository extends JpaRepository<AccountEntity, Long> {
     @Query("""
             select a.id as id, a.accountType as accountType, a.name as name, a.iban as iban, a.bank as bank, a.dateCreated as dateCreated, a.dateClosed as dateClosed,
                     o.id as ownerId, o.name as ownerName,
-                    lateral (select (sum(movement.kred) - sum(movement.deb))
-                                from (select amount as kred, 0 as deb
-                                        from PostEntity where toAccount = a
-                                        union all
-                                      select 0 as kred, amount as deb
-                                        from PostEntity where fromAccount = a) as movement
-                    ) as balance
+                    (COALESCE((select sum(amount) from PostEntity where toAccount = a),0)) as kred,
+                    (COALESCE((select sum(amount) from PostEntity where fromAccount = a),0)) as deb
                 from AccountEntity a
                     inner join a.belongsTo o
                     inner join o.users u

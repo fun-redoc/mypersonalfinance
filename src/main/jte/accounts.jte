@@ -39,7 +39,7 @@ content = @`
                             <td>${account.getId()}</td>
                             <td>${account.getAccountType()}</td>
                             <td>${account.getName()}</td>
-                            <td>${account.getBalance()}</td>
+                            <td>${account.getKred().subtract(account.getDeb())}</td>
                     <%--        <td th:unless="${hide_actions==true}">
                                 <a th:href="@{/accounts/edit/{id}(id=${account.id})}" role="button" th:text="#{button.text.edit}">Edit</a>
                                 <a th:href="@{/accounts/delete/{id}(id=${account.id})}" role="button" class="secondary" th:text="#{button.text.delete}">Delete</a>
