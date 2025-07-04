@@ -1,8 +1,11 @@
 @import rsh.conf.JteLocalizer
+@import rsh.web.JteControllerAdvice
 @param JteLocalizer localizer
 @param String name
 
-@template.layout(localizer =localizer,
+@template.layout(
+localizer =localizer,
+currentMenu = JteControllerAdvice.MenuItem.HOME,
 page = localizer.localize("home.page", name),
 content = @`
     <p><strong>${localizer.localize("home.welcome", name)}</strong> is logged in.</p>
