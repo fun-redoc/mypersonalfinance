@@ -38,6 +38,9 @@ import rsh.user.UserRepository;
 import rsh.user.UserService;
 
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.security.Principal;
 import java.util.*;
 
@@ -177,6 +180,7 @@ public class AuthController {
                     .authenticatorData(authenticatorData)
                     .publicKeyAlgorithm(publicKeyAlgorithm)
                     .publicKey(publicKey)
+                    .publicKeyHashSHA256(sha256(publicKey))
                     .attestationObject(attestationObject)
                     .challenge(challenge)
                     .transports(Set.copyOf(transports))
@@ -327,5 +331,17 @@ public class AuthController {
         //SecurityContextHolder.setContext(newSecurityContext);
         //session.setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY, newSecurityContext);
         return "redirect:/home";
+    }
+    private static String sha256(String input) throws NoSuchAlgorithmException {
+        MessageDigest md = MessageDigest.getInstance("SHA-256");
+        byte[] hashBytes = md.digest(input.getBytes(StandardCharsets.UTF_8));
+
+        StringBuilder hexString = new StringBuilder();
+        for (byte b : hashBytes) {
+            String hex = Integer.toHexString(0xff & b);
+            if (hex.length() == 1) hexString.append('0');
+            hexString.append(hex);
+        }
+        return hexString.toString();
     }
 }

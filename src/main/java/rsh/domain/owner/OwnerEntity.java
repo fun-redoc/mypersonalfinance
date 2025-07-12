@@ -15,6 +15,7 @@ import java.util.Set;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Cacheable
 public class OwnerEntity {
     @Id
     @SequenceGenerator(name = "owner_seq",
@@ -23,6 +24,9 @@ public class OwnerEntity {
                        initialValue = 1)
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "owner_seq")
     Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    UserEntity admin;
 
     // TODO there is a smell beeing dependent on an non-domain entity, how to make it better?
     @PrimaryKeyJoinColumn

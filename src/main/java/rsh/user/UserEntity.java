@@ -15,6 +15,7 @@ import java.util.Set;
 public class UserEntity {
     @Id
     @Column(name="id", updatable = false,unique = true,nullable = false)
+    // id is not set automatically, it is expected that id stems from the registration credentials
     private String id;
 
     @Column(name="user_name", unique = true, nullable = false)
@@ -35,8 +36,10 @@ public class UserEntity {
     private String authenticatorData;
     @Lob @Column
     private String clientDataJSON;
-    @Lob @Column
+    @Lob @Column // (unique = true) unique does not work for LARGE OBJECT, so I would need to introduce a unique hash column
     private String publicKey;
+    @Column(unique = true)
+    private String publicKeyHashSHA256;
     @Lob @Column
     private Integer publicKeyAlgorithm;
 

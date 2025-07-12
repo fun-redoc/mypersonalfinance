@@ -20,10 +20,8 @@ import rsh.user.UserService;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.security.SecureRandom;
-import java.util.Arrays;
-import java.util.Calendar;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Stream;
 
 @org.springframework.web.bind.annotation.RestController
 @Profile("devel") // set spring.profiles.active=test in properties or commandline arg.
@@ -59,8 +57,16 @@ public class TestEnvRestController {
 
         @GetMapping("/api/generate")
         public String generate() {
+                generateOwnersUsersAccountsAndPosts();
+                return "Some Testdata generated";
+        }
+
+        private void generateOwnersUsersAccountsAndPosts() {
                 var owners = List.of("group1", "group2", "group3")
                                 .stream().map(n -> generateOwner(n)).toList();
+                var users = List.of("u1", "u2", "u3", "u4", "u5")
+                        .stream().map(u->generateUser(u)).toList();
+                owners.forEach(o -> sample(users, 2).forEach(u->o.addUser(u)) );
                 Arrays.stream(AccountEntity.AccountType.values()).map(
                         accountType -> {
                                 String countryCode = "DE";
@@ -96,10 +102,17 @@ public class TestEnvRestController {
                         postRepository.save(post);
                 });
                 ;
-
-            return "Some Testdata generated";
         }
 
+        private UserEntity generateUser(String name) {
+                var user = UserEntity.builder()
+                        .id(name)
+                        .email(name + "@example.com")
+                        .username(name)
+                        .owners(new HashSet<>())
+                        .build();
+                return userRepository.save(user);
+        }
         private OwnerEntity generateOwner(String name) {
                 var auth = SecurityContextHolder.getContext().getAuthentication();
                 var userDetails = auth.getPrincipal();
@@ -115,10 +128,18 @@ public class TestEnvRestController {
                         var owner = ownerRepository.save(
                                 OwnerEntity.builder()
                                         .name(name)
+                                        .admin(user)
                                         .users(new HashSet<>()).build()
                                         .addUser(user));
                         return owner;
                 }
+        }
+
+        private<T> List<T> sample(List<T> wholeList, int sampleSize) {
+                List<T> copy = new ArrayList<>(wholeList);
+                Collections.shuffle(copy);
+                List<T> sample = copy.subList(0, sampleSize);
+                return sample;
         }
 }
 

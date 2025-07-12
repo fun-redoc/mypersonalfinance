@@ -4,12 +4,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import rsh.domain.account.deposit.DepositEntity;
-import rsh.domain.owner.OwnerEntity;
 import rsh.user.UserEntity;
-import rsh.web.AppController;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
