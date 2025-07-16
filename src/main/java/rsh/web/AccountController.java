@@ -36,7 +36,8 @@ public class AccountController {
 
     @ModelAttribute("username")
     public String username() {
-        return userService.getUserEntity().getUsername();
+        var user  = userService.getUserEntity();
+        return user.getUsername();
     }
 
     @ModelAttribute("allAccountTypes")
@@ -46,7 +47,8 @@ public class AccountController {
 
     @ModelAttribute("accounts")
     public List<AccountRepository.AccountsBaseData> getModelAttributeAllAccounts() {
-        var accounts =  accountRepository.findBaseWithBalanceByUser(userService.getUserEntity());
+        var user =  userService.getUserEntity();
+        var accounts =  accountRepository.findBaseWithBalanceByUser(user);
         return accounts;
     }
 
@@ -71,14 +73,21 @@ public class AccountController {
     @PostMapping(path = "/accounts/add")
 //    @ResponseStatus(HttpStatus.CREATED)
     public String postAdd( @Valid @ModelAttribute("accountViewModel") final AccountViewModel accountViewModel
+                         , BindingResult bindingResult
                          , @ModelAttribute("vwerrors") final ErrorsViewModel errorsViewModel
                          , @ModelAttribute("dialogState") final DialogStateViewModel dialogState
-                         , BindingResult bindingResult
                          ) {
             if (bindingResult.hasErrors()) {
                 //TODO transfer binding errors to vwerrors
                 dialogState.setDialogOpen(true);
                 dialogState.setDialogMode(DialogStateViewModel.DialogMode.ADD);
+                for(var bindingError:bindingResult.getFieldErrors()) {
+                    if(!errorsViewModel.getFieldMessages().containsKey(bindingError.getField())) {
+                        errorsViewModel.getFieldMessages().put(bindingError.getField(),new ArrayList<>());
+                    }
+                    var fieldMessages = errorsViewModel.getFieldMessages().get(bindingError.getField());
+                    fieldMessages.add(bindingError.getDefaultMessage());
+                }
                 return "accounts";
             }
             dialogState.setDialogOpen(true);

@@ -35,7 +35,10 @@ public class ErrorsViewModel {
         return messages.size() > 0;
     }
     public boolean hasErrorForField(String fieldName) {
-        return fieldName != null && fieldMessages.size() > 0 && fieldMessages.get(fieldName).size() > 0;
+        return fieldName != null
+                && fieldMessages.size() > 0
+                && fieldMessages.containsKey(fieldName)
+                && fieldMessages.get(fieldName).size() > 0;
     }
 
 }

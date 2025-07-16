@@ -18,13 +18,13 @@ import java.util.Date;
 public class AccountViewModel {
     private Long id;
 
-    @NotNull
+    @NotNull(message = "accounts.add.field.error.accountType")
     private AccountEntity.AccountType accountType;
 
-    @NotNull
+    @NotNull(message = "accounts.add.field.error.owner")
     private Long ownerEntityId;
 
-    @NotBlank(message = "Account name is mandatory")
+    @NotBlank(message = "accounts.add.field.error.name")
     private String name;
 
     private String bank;
@@ -32,10 +32,10 @@ public class AccountViewModel {
     // TODO check iban format and validate number using ... algorithm
     private String iban;
 
-    @Min(value = 0, message = "Balance must be a positive number")
+    @Min(value = 0, message = "accounts.field.error.balance")
     private BigDecimal balance;
 
-    @NotNull
+    @NotNull(message = "accounts.add.field.error.date.created")
     @DateTimeFormat(pattern = "yyyy-MM-dd")
     private Date dateCreated;
 

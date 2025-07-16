@@ -118,3 +118,42 @@
   width: auto;
 }
 /* ---------------------*/
+
+/* ---- settings owner users assignment ---- */
+    .assignment-area {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 30px;
+      padding-bottom: 10px;
+    }
+
+    .assignment-list {
+      width: 220px;
+      min-height: 200px;
+      border: 2px solid #aaa;
+      padding: 10px;
+      border-radius: 6px;
+      /*background: #f9f9f9;*/
+    }
+
+    .assignment-list h3 {
+      text-align: center;
+    }
+
+    .assignment-list-item {
+      padding: 8px;
+      margin: 5px 0;
+      background-color: var(--pico-primary-background);
+      color:var(--pico-primary-inverse);
+      border-radius: 6px;
+      cursor: grab;
+    }
+    .assignment-list-item:hover {
+      background-color: var(--pico-primary-hover-background);
+    }
+
+    .assignment-list.over {
+      border-color: var(--pico-primary-hover-border);
+      /*background-color: var(--pico-form-element-active-background-color);*/
+    }
+/* ---------------------*/

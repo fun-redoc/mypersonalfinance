@@ -4,6 +4,7 @@ import com.webauthn4j.WebAuthnManager;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -19,6 +20,7 @@ import rsh.ott.OttMail;
 
 @Configuration
 @EnableWebSecurity
+@Profile("prod")
 public class SecurityConfiguration {
 
     OneTimeTokenGenerationSuccessHandler ottSuccessHandler =
@@ -29,6 +31,7 @@ public class SecurityConfiguration {
     }
 
     @Bean
+    @Profile("prod")
     SecurityFilterChain securityFilterChainMy(HttpSecurity httpSecurity, OttMail ottMail) throws Exception {
         return httpSecurity
                 .authorizeHttpRequests(auth-> auth

@@ -26,7 +26,7 @@
     <!-- modal key entry if not provided in settings -->
     <dialog id="keyEntry" >
 <%--        <article th:replace="settings.html::enckey(false)"></article> --%>
-        @template.settings-enckey(localizer = localizer, name = username, enabled = false, vwerrors = vwerrors)
+        @template.settings-enckey(localizer = localizer, name = username, enabled = true, vwerrors = vwerrors)
     </dialog>
     <!-- Modal Edit/Add Dialog -->
     <dialog id="modal-example" open="${dialogState.getDialogOpen()}">
@@ -64,7 +64,7 @@
 
                 <label for="name">${localizer.localize("accounts.account.name")}</label>
                 <input type="text" id="name" name="name" value="${accountViewModel.getName()}" required />
-                @template.fieldErrors(fieldName = "name", vwerrors = vwerrors)
+                @template.fieldErrors(fieldName = "name", vwerrors = vwerrors, localizer = localizer)
 
                 <fieldset>
                     <legend>${localizer.localize("accounts.account.type")}</legend>
@@ -76,6 +76,7 @@
                         </span>
                     @endfor
                 </fieldset>
+                @template.fieldErrors(fieldName = "accountType", vwerrors = vwerrors, localizer = localizer)
 
                 <%-- Owner --%>
                 <select id="owner-entity-id" name="ownerEntityId" aria-label="Select your the appropriate group." required>
@@ -86,27 +87,28 @@
                         <option value="${owner.getId()}">${owner.getName()}</option>
                     @endfor
                 </select>
+                @template.fieldErrors(fieldName = "ownerEntityId", vwerrors = vwerrors, localizer = localizer)
 
                 <label for="bank">${localizer.localize("accounts.account.bank")}</label>
                 <input type="text" id="bank" name="bank" value="${accountViewModel.getBank()}" />
-                @template.fieldErrors(fieldName = "bank", vwerrors = vwerrors)
+                @template.fieldErrors(fieldName = "bank", vwerrors = vwerrors, localizer = localizer)
 
                 <label for="iban"> ${localizer.localize("accounts.account.iban")}</label>
                 <input type="text" id="iban" name="iban"  data-encrypted="${accountViewModel.getIban()}"
                        pattern="[a-zA-Z][a-zA-Z]\s?\d\d\s?\d\d\d\d\s?\d\d\d\d\s?\d\d\d\d\s?\d\d\d\d\s?\d\d"
                        placeholder="XY 11 2222 3333 4444 5555 66"/>
-                @template.fieldErrors(fieldName = "iban", vwerrors = vwerrors)
+                @template.fieldErrors(fieldName = "iban", vwerrors = vwerrors, localizer = localizer)
 
                 <div class="grid">
                     <div>
                         <label for="creation-date">${localizer.localize("accounts.account.creation.date")}</label>
                         <input type="date" id="creation-date" name="dateCreated" value="${formatter.format(accountViewModel.getDateCreated())}"/>
-                        @template.fieldErrors(fieldName = "'dateCreated'", vwerrors = vwerrors)
+                        @template.fieldErrors(fieldName = "'dateCreated'", vwerrors = vwerrors, localizer = localizer)
                     </div>
                     <div >
                         <label for="close-date">${localizer.localize("accounts.account.close.date")}</label>
                         <input type="date" id="close-date" name="dateClosed" value="${formatter.format(accountViewModel.getDateClosed())}"/>
-                        @template.fieldErrors(fieldName = "'dateClosed'", vwerrors = vwerrors)
+                        @template.fieldErrors(fieldName = "'dateClosed'", vwerrors = vwerrors, localizer = localizer)
                     </div>
                 </div>
 
@@ -186,11 +188,12 @@
                         `
 )
 
+<%--
 <script language="JavaScript">
     document.getElementById('btnOpenNewAccountModal')
             .addEventListener('click', (evt) => {
                 console.log("btnOpenNewAccountModal:click");
-    //          // TODO I'm accessing element IDs from the fragment of settings.html here, not the most nice ways, but
+              // TODO I'm accessing element IDs from the fragment of settings.html here, not the most nice ways, but
     //          //      move the fragment to fragments.html for more transparency
     //          const form = document.getElementById('formAccount');
     //          //const username = document.getElementById('inpKeyPasswd').dataset.username
@@ -216,3 +219,4 @@
     //          }
             });
 </script>
+--%>

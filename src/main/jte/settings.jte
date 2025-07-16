@@ -1,3 +1,4 @@
+@import org.springframework.security.web.csrf.CsrfToken
 @import rsh.conf.JteLocalizer
 @import rsh.domain.owner.OwnerEntity
 @import rsh.user.UserBaseDto
@@ -6,6 +7,7 @@
 @import java.util.AbstractList
 @import java.util.List
 @param JteLocalizer localizer
+@param CsrfToken csrf
 @param String username
 @param List<UserBaseDto> allUsers
 @param List<OwnerEntity> allOwnersForUser
@@ -25,6 +27,7 @@
                                   enabled = true,
                                   vwerrors = vwerrors )
         @template.settings-owners(localizer = localizer,
+                                  csrf = csrf,
                                   name = username,
                                   users = allUsers,
                                   allOwnersForUser = allOwnersForUser,
@@ -70,6 +73,7 @@
     content = pageContent,
     additional_head = @`
                             <script src="/security.js" ></script>
+                            <script src="/settings-owners-add.js" ></script>
                        `
 )
 

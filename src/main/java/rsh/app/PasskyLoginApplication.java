@@ -7,9 +7,11 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.Profile;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import rsh.api.TestEnvRestController;
 import rsh.user.UserEntity;
 import rsh.user.UserRepository;
 
@@ -25,12 +27,14 @@ public class PasskyLoginApplication {
 	@Autowired
 	UserRepository userRepository;
 
+
 	public static void main(String[] args) {
 		SpringApplication.run(PasskyLoginApplication.class, args);
 	}
 
 	@Bean
-	CommandLineRunner runne() {
+	@Profile("devel")
+	CommandLineRunner runner() {
 		// preloads a user for testesing.
 		// you can create the user using the registration procedure first
 		// and saving the resunt of the api call to /api/self/details
@@ -43,7 +47,8 @@ public class PasskyLoginApplication {
 				var userEntity = mapper.readValue(inputStream.getInputStream(), UserEntity.class);
 				userRepository.save(userEntity);
 			} catch (Exception e) {
-				System.out.println("now precofigured webauthn test user available");
+				System.err.println("could not create testdata and testuser.");
+				System.err.println(e);
 			}
 		};
 	}

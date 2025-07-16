@@ -1,10 +1,12 @@
 @import gg.jte.support.ForSupport
+@import org.springframework.security.web.csrf.CsrfToken
 @import rsh.conf.JteLocalizer
 @import rsh.domain.owner.OwnerEntity
 @import rsh.user.UserBaseDto
 @import rsh.user.UserEntity
 @import java.util.List
 @param JteLocalizer localizer
+@param CsrfToken csrf
 @param String name
 @param List<UserBaseDto> users
 @param List<OwnerEntity> allOwnersForUser
@@ -12,6 +14,11 @@
 @param boolean enabled = true
 @param rsh.web.ErrorsViewModel vwerrors
 
+@template.settings-owners-add(localizer = localizer,
+                                csrf = csrf,
+                                users = users,
+                                enabled = false,
+                                vwerrors = vwerrors)
 
 @template.generalErrors(vwerrors = vwerrors)
 
@@ -68,21 +75,22 @@
 
     <footer >
         <div role="group">
-            <button id="btnSaveGroups"
+            <button id="btnAddGroup"
                     role="button"
                     class="primary"
-                    type="button">
-                    ${localizer.localize("settings.article.groups.button.save")}
+                    type="button"
+                    data-target="modal-dialog">
+                    ${localizer.localize("settings.article.groups.button.add.group")}
             </button>
         </div>
     </footer>
     <script language="JavaScript" >
-        // TODO by the rules, no fragments out side fragmens.html and no inline script...fix this
-        const btnSaveGroups = document.getElementById('btnSaveGroups');
-        btnSaveGroups.addEventListener('click', function() {
-            console.log("btnCreateKey click");
-            console.log("btnCreateKey click unimplemented");
-            // TODO implement this
-        });
+        const btnAddGroup = document.getElementById('btnAddGroup');
+        btnAddGroup
+          .addEventListener('click', (evt) => {
+                console.log("btnAddGroup click");
+              //form.reset();
+              toggleModal(evt);
+          });
     </script>
 </article>
