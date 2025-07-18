@@ -1,3 +1,4 @@
+ /* TODO replace handcrafted colors, sizes etc. by pico variables (if available) */
  /* ---- misc ---- */
  .centered {
     display: flex; /* Enable flexbox */

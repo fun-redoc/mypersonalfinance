@@ -3,8 +3,8 @@
 @import rsh.domain.account.AccountEntity
 @import rsh.domain.account.AccountRepository
 @import rsh.domain.owner.OwnerEntity
-@import rsh.web.*
-@import rsh.web.DialogStateViewModel
+@import rsh.web.AccountController
+@import rsh.web.AccountViewModel
 @import rsh.web.JteControllerAdvice
 @import java.text.SimpleDateFormat
 @import java.util.List
@@ -15,7 +15,7 @@
 @param List<AccountRepository.AccountsBaseData> accounts
 @param List<AccountEntity.AccountType> allAccountTypes
 @param List<OwnerEntity> usersOwnerEntities
-@param DialogStateViewModel dialogState
+@param AccountController.AccountDialogStateViewModel accountDialogState
 @param AccountViewModel accountViewModel
 @param rsh.web.ErrorsViewModel vwerrors
 
@@ -29,7 +29,7 @@
         @template.settings-enckey(localizer = localizer, name = username, enabled = true, vwerrors = vwerrors)
     </dialog>
     <!-- Modal Edit/Add Dialog -->
-    <dialog id="modal-example" open="${dialogState.getDialogOpen()}">
+    <dialog id="modal-example" open="${accountDialogState.getDialogOpen()}">
         <article>
             <header>
                 <button
@@ -39,13 +39,13 @@
                         onclick="toggleModal(event)"
                 ></button>
                 !{var formAction = "";}
-                @if(dialogState.getDialogMode() == DialogStateViewModel.DialogMode.EDIT)
+                @if(accountDialogState.getDialogMode() == AccountController.AccountDialogStateViewModel.DialogMode.EDIT)
                     <h2>${localizer.localize("accounts.account.title.edit")}</h2>
                     !{formAction = "/accounts/edit/" + accountViewModel.getId();}
-                @elseif(dialogState.getDialogMode() == DialogStateViewModel.DialogMode.ADD)
+                @elseif(accountDialogState.getDialogMode() == AccountController.AccountDialogStateViewModel.DialogMode.ADD)
                     <h2>${localizer.localize("accounts.account.title.add")}</h2>
                     !{formAction = "/accounts/add";}
-                @elseif(dialogState.getDialogMode() == DialogStateViewModel.DialogMode.CLOSED)
+                @elseif(accountDialogState.getDialogMode() == AccountController.AccountDialogStateViewModel.DialogMode.CLOSED)
                     <h2>${localizer.localize("accounts.account.title.add")}</h2>
                     !{formAction = "/accounts/add";}
                 @else

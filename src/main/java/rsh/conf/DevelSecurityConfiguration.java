@@ -36,6 +36,7 @@ public class DevelSecurityConfiguration {
     //SecurityFilterChain develSecurityFilterChainMy(HttpSecurity httpSecurity, OttMail ottMail) throws Exception {
         return httpSecurity
                 .authorizeHttpRequests(auth-> auth
+                        .requestMatchers("/h2-console/**").permitAll()
                         .anyRequest().permitAll()
                 )
                 .addFilterAfter(new DevelLogonSecurityFilter(userRepository),
@@ -51,6 +52,7 @@ public class DevelSecurityConfiguration {
                         .frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin)
                 )
                 .csrf(Customizer.withDefaults())
+                .csrf(csrf -> csrf.ignoringRequestMatchers("/h2-console/**"))
                 .build();
     }
 }

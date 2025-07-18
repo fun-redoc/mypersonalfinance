@@ -4,14 +4,16 @@
 @import rsh.user.UserBaseDto
 @import rsh.web.*
 @import rsh.web.JteControllerAdvice
-@import java.util.AbstractList
 @import java.util.List
+@import java.util.Optional
 @param JteLocalizer localizer
 @param CsrfToken csrf
 @param String username
 @param List<UserBaseDto> allUsers
 @param List<OwnerEntity> allOwnersForUser
 @param List<OwnerEntity> allOwnersUserIsAdmin
+@param SettingsController.OwnerWithUserIds owner = null
+@param SettingsController.SettingsDialogStateViewModel settingsDialogState
 @param rsh.web.ErrorsViewModel vwerrors
 
 
@@ -30,9 +32,11 @@
                                   csrf = csrf,
                                   name = username,
                                   users = allUsers,
+                                  editOwner = owner,
                                   allOwnersForUser = allOwnersForUser,
                                   allOwnersUserIsAdmin = allOwnersUserIsAdmin,
                                   enabled = true,
+                                  settingsDialogState = settingsDialogState,
                                   vwerrors = vwerrors )
 
         <%--

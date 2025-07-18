@@ -3,21 +3,24 @@
 @import rsh.conf.JteLocalizer
 @import rsh.domain.owner.OwnerEntity
 @import rsh.user.UserBaseDto
-@import rsh.user.UserEntity
+@import rsh.web.SettingsController
 @import java.util.List
 @param JteLocalizer localizer
 @param CsrfToken csrf
 @param String name
 @param List<UserBaseDto> users
+@param SettingsController.OwnerWithUserIds editOwner = null 
 @param List<OwnerEntity> allOwnersForUser
 @param List<OwnerEntity> allOwnersUserIsAdmin
 @param boolean enabled = true
+@param SettingsController.SettingsDialogStateViewModel settingsDialogState
 @param rsh.web.ErrorsViewModel vwerrors
 
 @template.settings-owners-add(localizer = localizer,
                                 csrf = csrf,
                                 users = users,
-                                enabled = false,
+                                editOwner = editOwner,
+                                settingsDialogState = settingsDialogState,
                                 vwerrors = vwerrors)
 
 @template.generalErrors(vwerrors = vwerrors)
@@ -79,11 +82,13 @@
                     role="button"
                     class="primary"
                     type="button"
-                    data-target="modal-dialog">
+                    data-target="modal-dialog"
+                    onclick="toggleModal(event)">
                     ${localizer.localize("settings.article.groups.button.add.group")}
             </button>
         </div>
     </footer>
+    <%--
     <script language="JavaScript" >
         const btnAddGroup = document.getElementById('btnAddGroup');
         btnAddGroup
@@ -93,4 +98,5 @@
               toggleModal(evt);
           });
     </script>
+    --%>
 </article>

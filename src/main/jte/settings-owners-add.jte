@@ -1,22 +1,24 @@
 @import gg.jte.support.ForSupport
 @import org.springframework.security.web.csrf.CsrfToken
 @import rsh.conf.JteLocalizer
-@import rsh.domain.owner.OwnerEntity
 @import rsh.user.UserBaseDto
-@import rsh.user.UserEntity
-@import rsh.web.DialogStateViewModel
+@import rsh.web.SettingsController
+@import java.util.ArrayList
 @import java.util.List
-@import java.util.Optional
 @param JteLocalizer localizer
 @param CsrfToken csrf
-@param String name = null
 @param List<UserBaseDto> users
-@param boolean enabled = true
+@param SettingsController.OwnerWithUserIds editOwner = null
+@param SettingsController.SettingsDialogStateViewModel settingsDialogState
 @param rsh.web.ErrorsViewModel vwerrors
 
+@if(editOwner == null)
+    !{editOwner = new SettingsController.OwnerWithUserIds("", new ArrayList<>());}
+@endif
 
 <!-- Modal Edit/Add Dialog -->
-<dialog id="modal-dialog" open="${enabled}">
+<%-- <dialog id="modal-dialog" open="${enabled}"> --%>
+<dialog id="modal-dialog" open="${settingsDialogState.getDialogMode() != SettingsController.SettingsDialogStateViewModel.DialogMode.NONE}">
     <article>
         <header>
             <button
@@ -29,7 +31,7 @@
         </header>
 
         <form id="formOwner"
-              action="/settings/owners/save"
+              action="/settings/owners"
               method="post">
 
             @if(csrf != null)
@@ -37,14 +39,17 @@
             @endif
 
             <label for="name">${localizer.localize("settings.owner.name")}</label>
-            <input type="text" id="name" name="name" value="${name}" required />
+            <input type="text" id="name" name="name" value="${editOwner.name()}" required />
             @template.fieldErrors(fieldName = "name", vwerrors = vwerrors, localizer = localizer)
 
-            @template.settings-owners-assign-users(localizer = localizer, users = users, vwerrors = vwerrors)
+            @template.settings-owners-assign-users(localizer = localizer,
+                                                    users = users,
+                                                    editOwner = editOwner,
+                                                    vwerrors = vwerrors)
 
             <footer>
                 <div role="group">
-                    <button id="btnCancel"
+                    <button id="btnCancelOwner"
                             role="button"
                             type="reset"
                             class="secondary"
@@ -53,7 +58,7 @@
                         ${localizer.localize("button.text.cancel")}
                     </button>
                     <button autofocus
-                            id="btnSubmit"
+                            id="btnSubmitOwner"
                             type="button"
                             role="button"
                             class="primary">

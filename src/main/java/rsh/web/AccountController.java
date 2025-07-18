@@ -1,12 +1,11 @@
 package rsh.web;
 
 import jakarta.validation.Valid;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import rsh.domain.account.AccountEntity;
@@ -16,12 +15,18 @@ import rsh.domain.owner.OwnerEntity;
 import rsh.domain.owner.OwnerRepository;
 import rsh.user.UserService;
 
-import java.security.Principal;
 import java.util.*;
 
 @Controller
 @SessionAttributes("challenge")
-public class AccountController {
+public class AccountController extends ControllerBase {
+    @Data
+    @AllArgsConstructor
+    public static class AccountDialogStateViewModel {
+        public enum DialogMode{CLOSED, ADD,EDIT}
+        private Boolean dialogOpen;
+        private AccountDialogStateViewModel.DialogMode dialogMode;
+    }
     @Autowired
     AccountRepository accountRepository;
     @Autowired
@@ -61,12 +66,12 @@ public class AccountController {
 
     @GetMapping("/accounts")
     public String getAccounts(@ModelAttribute("vwerrors") final ErrorsViewModel errorsViewModel,
-                              @ModelAttribute("dialogState") final DialogStateViewModel dialogState,
+                              @ModelAttribute("accountDialogState") final AccountDialogStateViewModel dialogState,
                               @ModelAttribute("accountViewModel") final AccountViewModel accountViewModel) {
         accountViewModel.setDateCreated(Calendar.getInstance().getTime());
         accountViewModel.setDateClosed(Calendar.getInstance().getTime());
         dialogState.setDialogOpen(false);
-        dialogState.setDialogMode(DialogStateViewModel.DialogMode.CLOSED);
+        dialogState.setDialogMode(AccountDialogStateViewModel.DialogMode.CLOSED);
         return "accounts";
     }
 
@@ -75,23 +80,16 @@ public class AccountController {
     public String postAdd( @Valid @ModelAttribute("accountViewModel") final AccountViewModel accountViewModel
                          , BindingResult bindingResult
                          , @ModelAttribute("vwerrors") final ErrorsViewModel errorsViewModel
-                         , @ModelAttribute("dialogState") final DialogStateViewModel dialogState
+                         , @ModelAttribute("accountDialogState") final AccountDialogStateViewModel dialogState
                          ) {
             if (bindingResult.hasErrors()) {
-                //TODO transfer binding errors to vwerrors
                 dialogState.setDialogOpen(true);
-                dialogState.setDialogMode(DialogStateViewModel.DialogMode.ADD);
-                for(var bindingError:bindingResult.getFieldErrors()) {
-                    if(!errorsViewModel.getFieldMessages().containsKey(bindingError.getField())) {
-                        errorsViewModel.getFieldMessages().put(bindingError.getField(),new ArrayList<>());
-                    }
-                    var fieldMessages = errorsViewModel.getFieldMessages().get(bindingError.getField());
-                    fieldMessages.add(bindingError.getDefaultMessage());
-                }
+                dialogState.setDialogMode(AccountDialogStateViewModel.DialogMode.ADD);
+                bindingResultToError(bindingResult, errorsViewModel);
                 return "accounts";
             }
             dialogState.setDialogOpen(true);
-            dialogState.setDialogMode(DialogStateViewModel.DialogMode.CLOSED);
+            dialogState.setDialogMode(AccountDialogStateViewModel.DialogMode.CLOSED);
             var ownerEntityId = accountViewModel.getOwnerEntityId();
             assert(ownerEntityId != null);
             var maybeOwner = ownerRepository.findById(ownerEntityId); // ownerEntity should be cached
@@ -106,5 +104,15 @@ public class AccountController {
                     accountViewModel.getDateClosed());
             return "redirect:/accounts";
         }
+
+//    protected static void bindingResultToError(BindingResult bindingResult, ErrorsViewModel errorsViewModel) {
+//        for(var bindingError: bindingResult.getFieldErrors()) {
+//            if(!errorsViewModel.getFieldMessages().containsKey(bindingError.getField())) {
+//                errorsViewModel.getFieldMessages().put(bindingError.getField(),new ArrayList<>());
+//            }
+//            var fieldMessages = errorsViewModel.getFieldMessages().get(bindingError.getField());
+//            fieldMessages.add(bindingError.getDefaultMessage());
+//        }
+//    }
 
 }
