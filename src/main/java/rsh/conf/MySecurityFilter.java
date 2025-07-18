@@ -28,8 +28,8 @@ public class MySecurityFilter extends OncePerRequestFilter {
                 request.getServletPath(), request.getMethod(), securityContext.getAuthentication().getName()));
         if(securityContext.getAuthentication().isAuthenticated() && securityContext.getAuthentication().getPrincipal() != null) {
             var principal = securityContext.getAuthentication().getPrincipal();
-            var psincipal2 = request.getUserPrincipal();
-            System.out.println(String.format("LEAVING HELLO IN MY SECURITY FILTER: prinicpal set to %s %s", principal, psincipal2));
+            var pincipal2 = request.getUserPrincipal();
+            System.out.println(String.format("LEAVING HELLO IN MY SECURITY FILTER: prinicpal set to %s %s", principal, pincipal2));
 
         }
 

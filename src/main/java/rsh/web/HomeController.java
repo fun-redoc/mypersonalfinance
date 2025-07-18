@@ -13,7 +13,7 @@ import java.security.Principal;
 
 @Controller
 @SessionAttributes("challenge")
-public class HomeController {
+public class HomeController extends ControllerBase {
     @Autowired
     UserService userService;
 
@@ -40,7 +40,7 @@ public class HomeController {
 
     @ModelAttribute("username")
     public String username() {
-        return userService.getUserEntity().getUsername();
+        return getUser().getUsername();
     }
 
 }

@@ -3,20 +3,21 @@ package rsh.web;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import rsh.user.UserBaseDto;
 
 import java.util.Collection;
 
 public final class MyAuthenticationToken extends AbstractAuthenticationToken {
     //public  record Details(String email, String id){};
-    private String username;
+    private final UserBaseDto user;
     //private Details details;
     private UserDetails details;
-    public MyAuthenticationToken(String username,
+    public MyAuthenticationToken(UserBaseDto user,
                                  UserDetails details,
                                  Collection<? extends GrantedAuthority> authorities) {
         super(authorities);
         this.details = details;
-        this.username = username;
+        this.user = user;
     }
 
     @Override
@@ -25,8 +26,13 @@ public final class MyAuthenticationToken extends AbstractAuthenticationToken {
     }
 
     @Override
+    public String getName() {
+        return user.getUsername();
+    }
+
+    @Override
     public Object getPrincipal() {
-        return this.username;
+        return this.user;
     }
 
     @Override

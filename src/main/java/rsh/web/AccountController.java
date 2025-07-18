@@ -13,6 +13,7 @@ import rsh.domain.account.AccountRepository;
 import rsh.domain.account.AccountService;
 import rsh.domain.owner.OwnerEntity;
 import rsh.domain.owner.OwnerRepository;
+import rsh.user.UserEntity;
 import rsh.user.UserService;
 
 import java.util.*;
@@ -41,7 +42,7 @@ public class AccountController extends ControllerBase {
 
     @ModelAttribute("username")
     public String username() {
-        var user  = userService.getUserEntity();
+        var user  = getUser();
         return user.getUsername();
     }
 
@@ -52,15 +53,15 @@ public class AccountController extends ControllerBase {
 
     @ModelAttribute("accounts")
     public List<AccountRepository.AccountsBaseData> getModelAttributeAllAccounts() {
-        var user =  userService.getUserEntity();
-        var accounts =  accountRepository.findBaseWithBalanceByUser(user);
+        var user =  getUser();
+        var accounts =  accountRepository.findBaseWithBalanceByUser(UserEntity.builder().id(user.getId()).build());
         return accounts;
     }
 
     @ModelAttribute("usersOwnerEntities")
     public List<OwnerEntity> getUseresOwnerEntities() {
-        var user = userService.getUserEntity();
-        var owners = ownerRepository.findOwnerByUser(user);
+        var user = getUser();
+        var owners = ownerRepository.findOwnerByUser(UserEntity.builder().id(user.getId()).build());
         return owners;
     }
 

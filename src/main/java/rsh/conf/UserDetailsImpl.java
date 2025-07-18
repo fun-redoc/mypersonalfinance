@@ -5,6 +5,7 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+import rsh.user.UserBaseDto;
 import rsh.user.UserEntity;
 
 import javax.naming.AuthenticationNotSupportedException;
@@ -14,8 +15,8 @@ import java.util.List;
 public class UserDetailsImpl implements UserDetails {
     public static enum ROLES{USER_ROLE, ADMIN_ROLE};
 
-        final UserEntity user;
-        public UserDetailsImpl(UserEntity user) {
+        final UserBaseDto user;
+        public UserDetailsImpl(UserBaseDto user) {
             this.user = user;
         }
 

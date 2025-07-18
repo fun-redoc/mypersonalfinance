@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import rsh.domain.account.AccountEntity;
 import rsh.domain.account.AccountRepository;
 import rsh.domain.owner.OwnerRepository;
+import rsh.user.UserBaseDto;
 import rsh.user.UserEntity;
 import rsh.user.UserRepository;
 
@@ -32,7 +33,9 @@ public class RestController {
 
     protected UserEntity getUserEntity() {
         var auth = SecurityContextHolder.getContext().getAuthentication();
-        var userName = ((String) auth.getPrincipal()); // ugly upcast, so is the framework
+        var user = (UserBaseDto)auth.getPrincipal();
+        var userName = user.getUsername();
+        // TODO for sake of security, avoid loading whole entity, check existence of the username by specialized query
         var maybeRegisteredUser = userRepository.findUserByUsername(userName);
         if (maybeRegisteredUser.isEmpty()) {
             throw new UsernameNotFoundException("User not found.");

@@ -34,6 +34,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.bind.support.SessionStatus;
 import rsh.conf.UserDetailsImpl;
 import rsh.conf.WebAuthnProperties;
+import rsh.user.UserBaseDto;
 import rsh.user.UserEntity;
 import rsh.user.UserRepository;
 import rsh.user.UserService;
@@ -317,13 +318,16 @@ public class AuthController {
 
         System.out.println(String.format("Sign Count: credentialId:%s; signCount:%d", authenticationData.getCredentialId(), authenticationData.getAuthenticatorData().getSignCount()));
 
-        var userDetails = new UserDetailsImpl(userEntity);
+        var user = UserBaseDto.builder()
+                .username(userEntity.getUsername())
+                .email(userEntity.getEmail())
+                .id(userEntity.getId())
+                .build();
+        var userDetails = new UserDetailsImpl(user);
 
-        var auth = new MyAuthenticationToken(userEntity.getUsername(),
-                                             //new MyAuthenticationToken.Details(userEntity.getEmail(), userEntity.getId()),
+        var auth = new MyAuthenticationToken(user,
                                             userDetails,
                                             AuthorityUtils.createAuthorityList(userDetails.getAuthorities().stream().map(a->a.getAuthority()).toList()));
-                                             //AuthorityUtils.createAuthorityList("USER_ROLE"));
         var securityContext = SecurityContextHolder.getContext();
         securityContext.setAuthentication(auth);
         session.setAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY, securityContext);

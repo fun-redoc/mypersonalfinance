@@ -13,6 +13,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.web.filter.OncePerRequestFilter;
 import rsh.api.TestEnvRestController;
+import rsh.user.UserBaseDto;
 import rsh.user.UserEntity;
 import rsh.user.UserRepository;
 import rsh.web.MyAuthenticationToken;
@@ -43,8 +44,13 @@ public class DevelLogonSecurityFilter extends OncePerRequestFilter {
         if(session.getAttribute(HttpSessionSecurityContextRepository.SPRING_SECURITY_CONTEXT_KEY) == null) {
             var users = userRepository.findAll();
             UserEntity userEntity = users.stream().findFirst().orElseThrow(() -> new ServletException("no user found, create on user first."));
-            var userDetails = new UserDetailsImpl(userEntity);
-            var auth = new MyAuthenticationToken(userEntity.getUsername(),
+            var user = UserBaseDto.builder()
+                    .id(userEntity.getId())
+                    .email(userEntity.getEmail())
+                    .username(userEntity.getUsername())
+                    .build();
+            var userDetails = new UserDetailsImpl(user);
+            var auth = new MyAuthenticationToken(user,
                     //new MyAuthenticationToken.Details(userEntity.getEmail(), userEntity.getId()),
                     userDetails,
                     AuthorityUtils.createAuthorityList(userDetails.getAuthorities().stream().map(a->a.getAuthority()).toList()));

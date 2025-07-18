@@ -27,14 +27,15 @@ public class UserService {
     //    return userRepository.save(user);
     //}
 
-    public UserEntity getUserEntity() {
-        var auth = SecurityContextHolder.getContext().getAuthentication();
-        var userName = ((String) auth.getPrincipal()); // ugly upcast, so is the framework
-        var maybeRegisteredUser = userRepository.findUserByUsername(userName);
-        if (maybeRegisteredUser.isEmpty()) {
-            throw new UsernameNotFoundException("User not found.");
-        } else {
-            return maybeRegisteredUser.get();
-        }
-    }
+    // TODO discard UserService class in favour of BaseController
+    //public UserEntity getUserEntity() {
+    //    var auth = SecurityContextHolder.getContext().getAuthentication();
+    //    var userName = ((String) auth.getPrincipal()); // ugly upcast, so is the framework
+    //    var maybeRegisteredUser = userRepository.findUserByUsername(userName);
+    //    if (maybeRegisteredUser.isEmpty()) {
+    //        throw new UsernameNotFoundException("User not found.");
+    //    } else {
+    //        return maybeRegisteredUser.get();
+    //    }
+    //}
 }

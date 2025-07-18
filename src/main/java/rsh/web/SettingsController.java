@@ -17,9 +17,7 @@ import rsh.user.UserEntity;
 import rsh.user.UserRepository;
 import rsh.user.UserService;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Controller
@@ -44,7 +42,7 @@ public class SettingsController extends ControllerBase {
 
     @ModelAttribute("username")
     public String username() {
-        return userService.getUserEntity().getUsername();
+        return getUser().getUsername();
     }
 
     @ModelAttribute("allUsers")
@@ -55,15 +53,15 @@ public class SettingsController extends ControllerBase {
 
     @ModelAttribute("allOwnersForUser")
     public List<OwnerEntity> allOwnersForUser() {
-        var user = userService.getUserEntity();
-        var owners = ownerRepository.findOwnerByUser(user);
+        var user = getUser();
+        var owners = ownerRepository.findOwnerByUser(UserEntity.builder().id(user.getId()).build());
         return owners;
     }
 
     @ModelAttribute("allOwnersUserIsAdmin")
     public List<OwnerEntity> allOwnersUserIsAdmin() {
-        var user = userService.getUserEntity();
-        var owners = ownerRepository.findOwnersByAdminFetchingUsers(user);
+        var user = getUser();
+        var owners = ownerRepository.findOwnersByAdminFetchingUsers(UserEntity.builder().id(user.getId()).build());
         return owners;
     }
 
@@ -106,7 +104,7 @@ public class SettingsController extends ControllerBase {
         }
         var ownerEntity = OwnerEntity.builder()
                 .name(owner.name())
-                .admin(UserEntity.builder().id(getUserEntity().getId()).build())
+                .admin(UserEntity.builder().id(getUser().getId()).build())
                 .users(owner.userIds().stream().map(uid -> UserEntity.builder().id(uid).build()).collect(Collectors.toSet()))
                 .build();
         ownerRepository.save(ownerEntity);

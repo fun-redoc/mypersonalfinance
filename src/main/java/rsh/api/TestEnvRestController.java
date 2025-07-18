@@ -13,6 +13,7 @@ import rsh.domain.account.post.PostEntity;
 import rsh.domain.account.post.PostRepository;
 import rsh.domain.owner.OwnerEntity;
 import rsh.domain.owner.OwnerRepository;
+import rsh.user.UserBaseDto;
 import rsh.user.UserEntity;
 import rsh.user.UserRepository;
 import rsh.user.UserService;
@@ -44,9 +45,8 @@ public class TestEnvRestController {
         }
         protected UserEntity getUserEntity() {
                 var auth = SecurityContextHolder.getContext().getAuthentication();
-                var userDetails = auth.getPrincipal();
-                var userName = ((UserDetails) userDetails).getUsername(); // ugly upcast, so is the framework
-                //var userName = ((String) userDetails); // ugly upcast, so is the framework
+                var user = (UserBaseDto)auth.getPrincipal();// ugly upcast, so is the framework
+                var userName = user.getUsername();
                 var maybeRegisteredUser = userRepository.findUserByUsername(userName);
                 if (maybeRegisteredUser.isEmpty()) {
                         throw new UsernameNotFoundException("User not found.");
@@ -88,7 +88,7 @@ public class TestEnvRestController {
                 }).forEach(a -> {
                         var fromAccount
                                 = accountRepository
-                                        .findByUser(userService.getUserEntity())
+                                        .findByUser(getUserEntity())
                                         .stream()
                                         .filter(fa -> fa.getAccountType() == AccountEntity.AccountType.BANK)
                                         .findFirst()
@@ -187,6 +187,15 @@ class IBANGenerator {
                 String bban = generateGermanBBAN();
                 String iban = generateIBAN(countryCode, bban);
                 System.out.println("Generated IBAN: " + iban);
+        }
+        private UserBaseDto getUserEntity() {
+                var auth = SecurityContextHolder.getContext().getAuthentication();
+                var user = (UserBaseDto)auth.getPrincipal();
+                if (user == null) {
+                        throw new UsernameNotFoundException("User not found.");
+                } else {
+                        return user;
+                }
         }
 }
 
