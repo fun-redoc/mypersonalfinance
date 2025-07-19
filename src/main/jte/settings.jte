@@ -39,33 +39,6 @@
                                   settingsDialogState = settingsDialogState,
                                   vwerrors = vwerrors )
 
-        <%--
-        <article>
-            <header th:text="#{settings.article.header.api.key}"></header>
-            <input id="inpApiKey"
-                   type="text"
-                   th:placeholder="#{settings.article.api.key.input.placeholder}"
-            />
-            <footer >
-                <div role="group">
-                    <button id="btnApiKey"
-                            role="button"
-                            class="primary"
-                            type="button"
-                            th:text="#{settings.article.api.key.button.save.in.browser}">
-                        create api key
-                    </button>
-                </div>
-            </footer>
-            <script language="JavaScript">
-                const btnApiKey = document.getElementById('btnApiKey');
-                btnApiKey.addEventListener('click', function() {
-                    const inpApiKey = document.getElementById('inpApiKey');
-                    localStorage.setItem("api.key." + inpKeyPasswd.dataset.username, inpApiKey.value);
-                });
-            </script>
-        </article>
-        --%>
     </div>
 </main>
 `;}
@@ -77,6 +50,7 @@
     content = pageContent,
     additional_head = @`
                             <script src="/security.js" ></script>
+                            <script src="/settings-owners.js" ></script>
                             <script src="/settings-owners-add.js" ></script>
                        `
 )

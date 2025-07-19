@@ -3,11 +3,15 @@ package rsh.web;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.websocket.server.PathParam;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import rsh.domain.owner.OwnerEntity;
@@ -109,6 +113,29 @@ public class SettingsController extends ControllerBase {
                 .build();
         ownerRepository.save(ownerEntity);
         return  "redirect:/settings";
+    }
+
+    @DeleteMapping("/owners/{oid}/users/{uid}")
+    @Transactional
+    @Modifying
+    public ResponseEntity<Void> removeUserFromOwner(@PathVariable("oid") Long oid,
+                                              @PathVariable("uid") String uid,
+                                              @ModelAttribute("settingsDialogState") final SettingsDialogStateViewModel dialogStateViewModel,
+                                              @ModelAttribute("vwerrors") ErrorsViewModel errorsViewModel) {
+        System.out.println("----------------- remove user from owner -------------------");
+        var user = getUser();
+        try {
+            var ownerEntity = ownerRepository.findById(oid).orElseThrow();
+            var removeUserEntity = userRepository.findById(uid).orElseThrow();
+            ownerEntity.getUsers().remove(removeUserEntity);
+            removeUserEntity.getOwners().remove(ownerEntity);
+            ownerRepository.save(ownerEntity);
+        } catch (Exception e) {
+            System.err.println(e);
+            errorsViewModel.setMessages(List.of("errors.message.generic"));
+        } finally {
+            return ResponseEntity.noContent().build();
+        }
     }
 
 }

@@ -39,6 +39,9 @@
                 @endif
                         <summary>${ownerWithForSupport.get().getName()}</summary>
                         <p>
+                            @if(ownerWithForSupport.get().getUsers().size() == 0)
+                            <em>${localizer.localize("settings.owners.no.users")}</em>
+                            @else
                             <table>
                                 <thead>
                                 <tr>
@@ -52,18 +55,33 @@
                                     <tr>
                                         <th scope="row">${user.getUsername()}</th>
                                         <td>${user.getEmail()}</td>
-                                        <td> TODO remove</td>
+                                        <td>
+                                            <a href="#"
+                                               onclick='removeUserFromOwner(event, "${csrf.getToken()}", "${user.getId()}", ${ownerWithForSupport.get().getId()})'
+                                            >${localizer.localize("settings.article.owners.remove.user")}
+                                            </a>
+                                        </td>
                                     </tr>
                                 @endfor
                                 </tbody>
                                 <tfoot>
                                 <tr>
-                                    <th scope="row">TODO</th>
-                                    <td>${localizer.localize("settings.article.owners.add.user")}</td>
-                                    <td>${localizer.localize("settings.article.owners.add.user")}</td>
+                                    <th scope="row">&nbsp;</th>
+                                    <td>
+                                        <a href="#"
+                                           onclick="removeGroup(event, ${ownerWithForSupport.get().getId()})"a>
+                                            ${localizer.localize("settings.article.groups.button.remove.group")}
+                                        </a>
+                                    </td>
+                                    <td>
+                                        <a href="/settings/owners/${ownerWithForSupport.get().getId()}/edit">
+                                            ${localizer.localize("settings.article.groups.button.edit.group")}
+                                        </a>
+                                    </td>
                                 </tr>
                                 </tfoot>
                             </table>
+                        @endif
                         </p>
                         @if(!ownerWithForSupport.isLast())
                             <hr/>
@@ -88,15 +106,4 @@
             </button>
         </div>
     </footer>
-    <%--
-    <script language="JavaScript" >
-        const btnAddGroup = document.getElementById('btnAddGroup');
-        btnAddGroup
-          .addEventListener('click', (evt) => {
-                console.log("btnAddGroup click");
-              //form.reset();
-              toggleModal(evt);
-          });
-    </script>
-    --%>
 </article>
