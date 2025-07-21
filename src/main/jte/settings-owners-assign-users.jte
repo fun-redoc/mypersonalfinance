@@ -16,7 +16,7 @@
     <div class="assignment-list" id="availableUsers" ondragover="allowDrop(event)" ondrop="drop(event)">
         <h3>${localizer.localize("settings.owners.unassigned.users")}</h3>
         @for(var user:users)
-            @if(editOwner.userIds().stream().noneMatch(uid-> uid.equals(user.getId())))
+            @if(editOwner.getUserIds().stream().noneMatch(uid-> uid.equals(user.getId())))
                 <div class="assignment-list-item" draggable="true" ondragstart="drag(event)"
                      id="user${user.getId()}"
                      data-id="${user.getId()}"
@@ -27,7 +27,7 @@
 
     <div class="assignment-list" id="assignedUsers" ondragover="allowDrop(event)" ondrop="drop(event)">
         <h3>${localizer.localize("settings.owner.assigned.users")}</h3>
-        @for(var uid:editOwner.userIds())
+        @for(var uid:editOwner.getUserIds())
             !{var user = users.stream().filter(u->u.getId().equals(uid)).findAny();}
             @if(user.isPresent())
                 <div class="assignment-list-item" draggable="true" ondragstart="drag(event)"

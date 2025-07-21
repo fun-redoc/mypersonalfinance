@@ -3,6 +3,7 @@
 @import rsh.conf.JteLocalizer
 @import rsh.user.UserBaseDto
 @import rsh.web.SettingsController
+@import rsh.web.SettingsController.OwnerWithUserIds
 @import java.util.ArrayList
 @import java.util.List
 @param JteLocalizer localizer
@@ -13,7 +14,7 @@
 @param rsh.web.ErrorsViewModel vwerrors
 
 @if(editOwner == null)
-    !{editOwner = new SettingsController.OwnerWithUserIds("", new ArrayList<>());}
+    !{editOwner = OwnerWithUserIds.builder().build();}
 @endif
 
 <!-- Modal Edit/Add Dialog -->
@@ -38,8 +39,10 @@
                 <input type="hidden" name="${csrf.getParameterName()}" value="${csrf.getToken()}">
             @endif
 
+            <input type="hidden" readonly id="oid" name="oid" value="${editOwner.getOid()}"/>
+
             <label for="name">${localizer.localize("settings.owner.name")}</label>
-            <input type="text" id="name" name="name" value="${editOwner.name()}" required />
+            <input type="text" id="name" name="name" value="${editOwner.getName()}" required />
             @template.fieldErrors(fieldName = "name", vwerrors = vwerrors, localizer = localizer)
 
             @template.settings-owners-assign-users(localizer = localizer,

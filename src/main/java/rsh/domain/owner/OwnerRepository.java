@@ -1,6 +1,7 @@
 package rsh.domain.owner;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import rsh.user.UserEntity;
@@ -11,6 +12,15 @@ import java.util.Optional;
 public interface OwnerRepository extends JpaRepository<OwnerEntity, Long> {
     List<OwnerEntity> findByAdmin(UserEntity userEntity);
     Optional<OwnerEntity> findOwnerByName(String name);
+
+    @Query("""
+            select o
+                from OwnerEntity o
+                left join fetch o.users
+                where o.id = :oid
+            """)
+        // TODO repolace by an appropriate Dto, User Objects are to beeg and consist of to critical data
+    Optional<OwnerEntity> findOwnerByIdFetchingUsers(@Param("oid") Long oid);
 
     @Query("""
             select o

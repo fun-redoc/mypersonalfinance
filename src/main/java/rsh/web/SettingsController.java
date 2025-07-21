@@ -5,11 +5,13 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.websocket.server.PathParam;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.http.ResponseEntity;
+import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.BindingResult;
@@ -21,7 +23,9 @@ import rsh.user.UserEntity;
 import rsh.user.UserRepository;
 import rsh.user.UserService;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Controller
@@ -69,13 +73,17 @@ public class SettingsController extends ControllerBase {
         return owners;
     }
 
-    public record OwnerWithUserIds(@NotNull(message = "settings.owners.add.no.name.error")
-                                   @NotBlank(message = "settings.owners.add.no.name.error") String name,
-                                   List<String> userIds) {
-        public OwnerWithUserIds {
-            if(userIds == null) {
-                userIds = List.of();
-            }
+    @Data
+    @Builder
+    @AllArgsConstructor
+    public static class OwnerWithUserIds{
+        Long oid; // presence signals that this object is already persisted
+        @NotNull(message = "settings.owners.add.no.name.error")
+        @NotBlank(message = "settings.owners.add.no.name.error") String name;
+        List<String> userIds;
+        public OwnerWithUserIds() {
+            this.userIds = new ArrayList<>();
+            this.oid = null;
         }
     };
 
@@ -97,6 +105,7 @@ public class SettingsController extends ControllerBase {
     //}
 
     @PostMapping("/owners")
+    @Transactional
     public String saveOwnerWithUsers(@Valid @ModelAttribute("owner") final OwnerWithUserIds owner,
                                      final BindingResult bindingResult,
                                      @ModelAttribute("settingsDialogState") final SettingsDialogStateViewModel dialogStateViewModel,
@@ -106,12 +115,39 @@ public class SettingsController extends ControllerBase {
             bindingResultToError(bindingResult, errorsViewModel);
             return "settings";
         }
-        var ownerEntity = OwnerEntity.builder()
-                .name(owner.name())
-                .admin(UserEntity.builder().id(getUser().getId()).build())
-                .users(owner.userIds().stream().map(uid -> UserEntity.builder().id(uid).build()).collect(Collectors.toSet()))
-                .build();
-        ownerRepository.save(ownerEntity);
+        if(owner.oid == null) {
+            var ownerEntity = OwnerEntity.builder()
+                    .name(owner.getName())
+                    .admin(UserEntity.builder().id(getUser().getId()).build())
+                    .users(owner.getUserIds().stream().map(uid -> UserEntity.builder().id(uid).build()).collect(Collectors.toSet()))
+                    .build();
+            ownerRepository.save(ownerEntity);
+        } else {
+            try {
+                var ownerEntity = ownerRepository.findOwnerByIdFetchingUsers(owner.oid).orElseThrow();
+                if(!ownerEntity.getName().equals(owner.getName())) {
+                    ownerEntity.setName(owner.getName());
+                }
+                for(var uid:owner.getUserIds()) {
+                    if(!ownerEntity.getUsers().contains(UserEntity.builder().id(uid).build())) {
+                       // add this user as userEntity
+                        var userEntity = userRepository.findById(uid).orElseThrow();
+                        ownerEntity.addUser(userEntity);
+                    }
+                }
+                for(var userEntity:ownerEntity.getUsers()) {
+                    if(!owner.getUserIds().contains(userEntity.getId())) {
+                       // remove this userEntity
+                        ownerEntity.getUsers().remove(userEntity);
+                        userEntity.getOwners().remove(ownerEntity);
+                    }
+                }
+                ownerRepository.save(ownerEntity);
+            } catch (Exception e) {
+                System.err.println(e);
+                errorsViewModel.setMessages(List.of("errors.message.generic"));
+            }
+        }
         return  "redirect:/settings";
     }
 
@@ -136,6 +172,24 @@ public class SettingsController extends ControllerBase {
         } finally {
             return ResponseEntity.noContent().build();
         }
+    }
+
+    @GetMapping("/owners/{oid}")
+    public String getOwnerForEdditing(@PathVariable("oid") final Long oid,
+                                      @ModelAttribute("owner") final OwnerWithUserIds owner,
+                                      @ModelAttribute("settingsDialogState") final SettingsDialogStateViewModel dialogStateViewModel,
+                                      @ModelAttribute("vwerrors") ErrorsViewModel errorsViewModel) {
+        try {
+            var ownerEntity = ownerRepository.findById(oid).orElseThrow();
+            owner.setName(ownerEntity.getName());
+            owner.setOid(oid);
+            owner.getUserIds().addAll(ownerEntity.getUsers().stream().map(u->u.getId()).toList());
+            dialogStateViewModel.setDialogMode(SettingsDialogStateViewModel.DialogMode.OWNER_ADD);
+        } catch (Exception e) {
+            System.err.println(e);
+            errorsViewModel.setMessages(List.of("errors.message.generic"));
+        }
+        return "settings";
     }
 
 }

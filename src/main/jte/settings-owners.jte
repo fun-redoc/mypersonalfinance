@@ -41,6 +41,9 @@
                         <p>
                             @if(ownerWithForSupport.get().getUsers().size() == 0)
                             <em>${localizer.localize("settings.owners.no.users")}</em>
+                        <a href="/settings/owners/${ownerWithForSupport.get().getId()}">
+                           ${localizer.localize("settings.article.groups.button.edit.group")}
+                        </a>
                             @else
                             <table>
                                 <thead>
@@ -74,7 +77,7 @@
                                         </a>
                                     </td>
                                     <td>
-                                        <a href="/settings/owners/${ownerWithForSupport.get().getId()}/edit">
+                                        <a href="/settings/owners/${ownerWithForSupport.get().getId()}">
                                             ${localizer.localize("settings.article.groups.button.edit.group")}
                                         </a>
                                     </td>
