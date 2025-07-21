@@ -151,6 +151,28 @@ public class SettingsController extends ControllerBase {
         return  "redirect:/settings";
     }
 
+    @DeleteMapping("/owners/{oid}")
+    @Transactional
+    @Modifying
+    public ResponseEntity<Void> removeGroup(@PathVariable("oid") Long oid,
+                                            @ModelAttribute("settingsDialogState") final SettingsDialogStateViewModel dialogStateViewModel,
+                                            @ModelAttribute("vwerrors") ErrorsViewModel errorsViewModel) {
+        System.out.println("----------------- remove  owner -------------------");
+        var user = getUser();
+        try {
+            var ownerEntity = ownerRepository.findById(oid).orElseThrow();
+            if(ownerEntity.getAdmin().getId().equals(user.getId())) {
+                throw new RuntimeException(String.format("ALERT: user %s tried to delete the group %s not beeing the group admin.", user.getUsername()));
+            }
+            ownerRepository.delete(ownerEntity);
+        } catch (Exception e) {
+            System.err.println(e);
+            errorsViewModel.setMessages(List.of("errors.message.generic"));
+        } finally {
+            return ResponseEntity.noContent().build();
+        }
+    }
+
     @DeleteMapping("/owners/{oid}/users/{uid}")
     @Transactional
     @Modifying

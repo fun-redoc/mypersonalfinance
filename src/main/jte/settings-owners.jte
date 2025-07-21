@@ -40,10 +40,15 @@
                         <summary>${ownerWithForSupport.get().getName()}</summary>
                         <p>
                             @if(ownerWithForSupport.get().getUsers().size() == 0)
-                            <em>${localizer.localize("settings.owners.no.users")}</em>
-                        <a href="/settings/owners/${ownerWithForSupport.get().getId()}">
-                           ${localizer.localize("settings.article.groups.button.edit.group")}
-                        </a>
+                                <em>${localizer.localize("settings.owners.no.users")}</em>
+                                <a href="/settings/owners/${ownerWithForSupport.get().getId()}">
+                                   ${localizer.localize("settings.article.groups.button.edit.group")}
+                                </a>
+                                &nbsp;
+                                <a href="#"
+                                   onclick="removeGroup(event, ${ownerWithForSupport.get().getId()})"a>
+                                    ${localizer.localize("settings.article.groups.button.remove.group")}
+                                </a>
                             @else
                             <table>
                                 <thead>
@@ -70,13 +75,7 @@
                                 <tfoot>
                                 <tr>
                                     <th scope="row">&nbsp;</th>
-                                    <td>
-                                        <a href="#"
-                                           onclick="removeGroup(event, ${ownerWithForSupport.get().getId()})"a>
-                                            ${localizer.localize("settings.article.groups.button.remove.group")}
-                                        </a>
-                                    </td>
-                                    <td>
+                                    <td colspan="2" style="text-align: right;">
                                         <a href="/settings/owners/${ownerWithForSupport.get().getId()}">
                                             ${localizer.localize("settings.article.groups.button.edit.group")}
                                         </a>
