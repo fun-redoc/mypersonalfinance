@@ -2,6 +2,7 @@
 @import rsh.conf.JteLocalizer
 @import rsh.domain.account.AccountEntity
 @import rsh.domain.account.AccountRepository
+@import rsh.domain.account.AccountsBaseData
 @import rsh.domain.owner.OwnerEntity
 @import rsh.web.AccountController
 @import rsh.web.AccountViewModel
@@ -12,7 +13,7 @@
 @param CsrfToken csrf
 @param JteLocalizer localizer
 @param String username
-@param List<AccountRepository.AccountsBaseData> accounts
+@param List<AccountsBaseData> accounts
 @param List<AccountEntity.AccountType> allAccountTypes
 @param List<OwnerEntity> usersOwnerEntities
 @param AccountController.AccountDialogStateViewModel accountDialogState
@@ -71,7 +72,11 @@
                     @for(var accountType:allAccountTypes)
                         <span>
                             <label for="id${accountType}">${localizer.localize(String.format("account.type.%s",accountType.name()))}</label>
-                            <input id="id${accountType}" type="radio" name="accountType" value="${accountType}"  />
+                            @if(accountType.equals(accountViewModel.getAccountType()))
+                                <input checked id="id${accountType}" type="radio" name="accountType" value="${accountType}"  />
+                            @else
+                                <input id="id${accountType}" type="radio" name="accountType" value="${accountType}"  />
+                            @endif
                             <span>&nbsp;</span>
                         </span>
                     @endfor
@@ -80,11 +85,21 @@
 
                 <%-- Owner --%>
                 <select id="owner-entity-id" name="ownerEntityId" aria-label="Select your the appropriate group." required>
-                    <option selected disabled value="">
-                        ${localizer.localize("accounts.account.select.group")}"
-                    </option>
+                    @if(accountViewModel.getOwnerEntityId() == null)
+                        <option selected disabled value="">
+                            ${localizer.localize("accounts.account.select.group")}
+                        </option>
+                    @else
+                        <option disabled value="">
+                            ${localizer.localize("accounts.account.select.group")}
+                        </option>
+                    @endif
                     @for(var owner:usersOwnerEntities)
-                        <option value="${owner.getId()}">${owner.getName()}</option>
+                        @if(owner.getId() == accountViewModel.getOwnerEntityId())
+                            <option selected value="${owner.getId()}">${owner.getName()}</option>
+                        @else
+                            <option value="${owner.getId()}">${owner.getName()}</option>
+                        @endif
                     @endfor
                 </select>
                 @template.fieldErrors(fieldName = "ownerEntityId", vwerrors = vwerrors, localizer = localizer)
@@ -107,7 +122,7 @@
                     </div>
                     <div >
                         <label for="close-date">${localizer.localize("accounts.account.close.date")}</label>
-                        <input type="date" id="close-date" name="dateClosed" value="${formatter.format(accountViewModel.getDateClosed())}"/>
+                        <input type="date" id="close-date" name="dateClosed" value='${accountViewModel.getDateClosed() == null ? "": formatter.format(accountViewModel.getDateClosed())}'/>
                         @template.fieldErrors(fieldName = "'dateClosed'", vwerrors = vwerrors, localizer = localizer)
                     </div>
                 </div>
@@ -155,7 +170,9 @@
                     <th>${localizer.localize("accounts.account.type")}</th>
                     <th>${localizer.localize("accounts.account.name")}</th>
                     <th>${localizer.localize("accounts.account.balance")}</th>
-                    <%--                    <th th:unless="${"hide_actions==true}" >${localizer.localize("accounts.account.actions")}</th> --%>
+                    @if(!accountDialogState.getHideActions())
+                        <th>${localizer.localize("accounts.account.actions")}</th>
+                    @endif
                 </tr>
                 </thead>
                 <tbody>
@@ -165,10 +182,12 @@
                         <td>${account.getAccountType()}</td>
                         <td>${account.getName()}</td>
                         <td>${account.getKred().subtract(account.getDeb())}</td>
-                        <%--        <td th:unless="${hide_actions==true}">
-                                    <a th:href="@{/accounts/edit/{id}(id=${account.id})}" role="button" th:text="#{button.text.edit}">Edit</a>
-                                    <a th:href="@{/accounts/delete/{id}(id=${account.id})}" role="button" class="secondary" th:text="#{button.text.delete}">Delete</a>
-                                </td> --%>
+                        @if(!accountDialogState.getHideActions())
+                            <td>
+                                <a href="/accounts/edit/${account.getId()}"   >${localizer.localize("button.text.edit")}</a>
+                                <a href="#" onclick='deleteAccount(event, "${csrf.getToken()}", ${account.getId()})'  class="secondary">${localizer.localize("button.text.delete")}</a>
+                            </td>
+                        @endif
                     </tr>
                 @endfor
                 </tbody>

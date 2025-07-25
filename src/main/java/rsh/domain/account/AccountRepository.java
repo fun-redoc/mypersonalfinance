@@ -7,28 +7,22 @@ import rsh.domain.account.deposit.DepositEntity;
 import rsh.user.UserEntity;
 
 import java.math.BigDecimal;
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
 public interface AccountRepository extends JpaRepository<AccountEntity, Long> {
-    public interface AccountsBaseData {
-        Long getId();
-        rsh.domain.account.AccountEntity.AccountType getAccountType();
-        String getName();
-        String getIban();
-        String getBank();
-        Date getDateCreated();
-        Date getDateClosed();
-        Long getOwnerId();
-        String getOwnerName();
-        BigDecimal getKred();
-        BigDecimal getDeb();
-    }
-
     @Query("""
-            select a.id as id, a.accountType as accountType, a.name as name, a.iban as iban, a.bank as bank, a.dateCreated as dateCreated, a.dateClosed as dateClosed,
-                    o.id as ownerId, o.name as ownerName
+            select  new rsh.domain.account.AccountsBaseData(
+                    a.id,
+                    a.accountType,
+                    a.name,
+                    a.iban,
+                    a.bank,
+                    a.dateCreated,
+                    a.dateClosed,
+                    o.id,
+                    o.name,
+                    null,null)
                 from AccountEntity a
                     inner join a.belongsTo o
                     inner join o.users u
@@ -61,10 +55,18 @@ public interface AccountRepository extends JpaRepository<AccountEntity, Long> {
     Optional<BigDecimal> balance(@Param("account") AccountEntity account);
 
     @Query("""
-            select a.id as id, a.accountType as accountType, a.name as name, a.iban as iban, a.bank as bank, a.dateCreated as dateCreated, a.dateClosed as dateClosed,
-                    o.id as ownerId, o.name as ownerName,
-                    (COALESCE((select sum(amount) from PostEntity where toAccount = a),0)) as kred,
-                    (COALESCE((select sum(amount) from PostEntity where fromAccount = a),0)) as deb
+            select  new rsh.domain.account.AccountsBaseData(
+                     a.id,
+                     a.accountType,
+                     a.name,
+                     a.iban,
+                     a.bank,
+                     a.dateCreated,
+                     a.dateClosed,
+                     o.id,
+                     o.name,
+                     (COALESCE((select sum(amount) from PostEntity where toAccount = a),\n0)),
+                     (COALESCE((select sum(amount) from PostEntity where fromAccount = a),0)))
                 from AccountEntity a
                     inner join a.belongsTo o
                     inner join o.users u

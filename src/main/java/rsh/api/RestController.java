@@ -1,13 +1,11 @@
 package rsh.api;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Profile;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.GetMapping;
-import rsh.domain.account.AccountEntity;
 import rsh.domain.account.AccountRepository;
+import rsh.domain.account.AccountsBaseData;
 import rsh.domain.owner.OwnerRepository;
 import rsh.user.UserBaseDto;
 import rsh.user.UserEntity;
@@ -25,7 +23,7 @@ public class RestController {
     AccountRepository accountRepository;
 
     @GetMapping("/api/accounts")
-    public List<AccountRepository.AccountsBaseData> allAccountsUserOwns() {
+    public List<AccountsBaseData> allAccountsUserOwns() {
         //var owners = ownerRepository.findOwnerByUser(getUserEntity());
         var accounts = accountRepository.findBaseByUser(getUserEntity());
         return accounts;
@@ -43,4 +41,5 @@ public class RestController {
             return maybeRegisteredUser.get();
         }
     }
+
 }

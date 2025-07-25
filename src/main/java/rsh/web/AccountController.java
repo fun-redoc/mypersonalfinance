@@ -2,15 +2,19 @@ package rsh.web;
 
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import rsh.domain.account.AccountEntity;
 import rsh.domain.account.AccountRepository;
-import rsh.domain.account.AccountService;
+//import rsh.domain.account.OBSOLETE_AccountService;
+import rsh.domain.account.AccountsBaseData;
 import rsh.domain.owner.OwnerEntity;
 import rsh.domain.owner.OwnerRepository;
 import rsh.user.UserEntity;
@@ -22,16 +26,22 @@ import java.util.*;
 @SessionAttributes("challenge")
 public class AccountController extends ControllerBase {
     @Data
+    @Builder
     @AllArgsConstructor
+    @NoArgsConstructor
     public static class AccountDialogStateViewModel {
         public enum DialogMode{CLOSED, ADD,EDIT}
-        private Boolean dialogOpen;
-        private AccountDialogStateViewModel.DialogMode dialogMode;
+        @Builder.Default
+        private Boolean dialogOpen = Boolean.FALSE;
+        @Builder.Default
+        private AccountDialogStateViewModel.DialogMode dialogMode = DialogMode.CLOSED;
+        @Builder.Default
+        private Boolean hideActions = Boolean.FALSE;
     }
     @Autowired
     AccountRepository accountRepository;
-    @Autowired
-    AccountService accountService;
+    //@Autowired
+    //OBSOLETE_AccountService accountService;
     @Autowired
     OwnerRepository ownerRepository;
     @Autowired
@@ -52,7 +62,7 @@ public class AccountController extends ControllerBase {
     }
 
     @ModelAttribute("accounts")
-    public List<AccountRepository.AccountsBaseData> getModelAttributeAllAccounts() {
+    public List<AccountsBaseData> getModelAttributeAllAccounts() {
         var user =  getUser();
         var accounts =  accountRepository.findBaseWithBalanceByUser(UserEntity.builder().id(user.getId()).build());
         return accounts;
@@ -77,7 +87,7 @@ public class AccountController extends ControllerBase {
     }
 
     @PostMapping(path = "/accounts/add")
-//    @ResponseStatus(HttpStatus.CREATED)
+    @Modifying
     public String postAdd( @Valid @ModelAttribute("accountViewModel") final AccountViewModel accountViewModel
                          , BindingResult bindingResult
                          , @ModelAttribute("vwerrors") final ErrorsViewModel errorsViewModel
@@ -95,7 +105,7 @@ public class AccountController extends ControllerBase {
             assert(ownerEntityId != null);
             var maybeOwner = ownerRepository.findById(ownerEntityId); // ownerEntity should be cached
             assert(maybeOwner.isPresent());
-            var newAccountsId = accountService.saveNewAndReturnId(
+            var newAccountsId = saveNewAndReturnId(
                     maybeOwner.get(),
                     accountViewModel.getAccountType(),
                     accountViewModel.getName(),
@@ -106,14 +116,81 @@ public class AccountController extends ControllerBase {
             return "redirect:/accounts";
         }
 
-//    protected static void bindingResultToError(BindingResult bindingResult, ErrorsViewModel errorsViewModel) {
-//        for(var bindingError: bindingResult.getFieldErrors()) {
-//            if(!errorsViewModel.getFieldMessages().containsKey(bindingError.getField())) {
-//                errorsViewModel.getFieldMessages().put(bindingError.getField(),new ArrayList<>());
-//            }
-//            var fieldMessages = errorsViewModel.getFieldMessages().get(bindingError.getField());
-//            fieldMessages.add(bindingError.getDefaultMessage());
-//        }
-//    }
+        @GetMapping("/accounts/edit/{id}")
+        public String getAccountEdit(
+                           @PathVariable("id") Long accountId
+                         , @ModelAttribute("accountViewModel") final AccountViewModel accountViewModel
+                         , BindingResult bindingResult
+                         , @ModelAttribute("vwerrors") final ErrorsViewModel errorsViewModel
+                         , @ModelAttribute("accountDialogState") final AccountDialogStateViewModel dialogState
+        ) {
+            errorsViewModel.clear();
+            return accountRepository.findById(accountId)
+                            .map(accountEntity -> {
+                                initAccountViewModelFromEntity(accountViewModel, accountEntity);
+                                dialogState.setDialogOpen(Boolean.TRUE);
+                                dialogState.setDialogMode(AccountDialogStateViewModel.DialogMode.EDIT);
+                                return "accounts";
+                            }).orElseGet(() ->{
+                                errorsViewModel.getMessages().add("errors.message.generic");
+                                return "accounts";
+                            });
+        }
 
+        @PostMapping("/accounts/edit/{id}")
+        @Modifying
+        public String postAccountEdit(
+                @PathVariable("id") Long accountId
+                , @ModelAttribute("accountViewModel") final AccountViewModel accountViewModel
+                , BindingResult bindingResult
+                , @ModelAttribute("vwerrors") final ErrorsViewModel errorsViewModel
+                , @ModelAttribute("accountDialogState") final AccountDialogStateViewModel dialogState
+        ) {
+            if (bindingResult.hasErrors()) {
+                //dialogState.setDialogOpen(true);
+                //dialogState.setDialogMode(AccountDialogStateViewModel.DialogMode.EDIT);
+                bindingResultToError(bindingResult, errorsViewModel);
+                return "accounts";
+            }
+            var ownerEntityId = accountViewModel.getOwnerEntityId();
+            assert(ownerEntityId != null);
+            var maybeOwner = ownerRepository.findById(ownerEntityId); // ownerEntity should be cached
+            assert(maybeOwner.isPresent());
+            var maybeAccountEntity = accountRepository.findById(accountViewModel.getId());
+            return maybeAccountEntity.map(accountEntity -> {
+                        accountEntity.setBelongsTo(maybeOwner.get());
+                        accountEntity.setAccountType(accountViewModel.getAccountType());
+                        accountEntity.setName(accountViewModel.getName());
+                        accountEntity.setIban(accountViewModel.getIban());
+                        accountEntity.setBank(accountViewModel.getBank());
+                        accountEntity.setDateCreated(accountViewModel.getDateCreated());
+                        accountEntity.setDateClosed(accountViewModel.getDateClosed());
+                        accountRepository.save(accountEntity);
+                        return "redirect:/accounts";
+                    }).orElseGet(() -> {
+                        return "accounts";
+                    });
+        }
+
+        void initAccountViewModelFromEntity(AccountViewModel accountViewModel, AccountEntity accountEntity) {
+            accountViewModel.setId(accountEntity.getId());
+            accountViewModel.setAccountType(accountEntity.getAccountType());
+            accountViewModel.setName(accountEntity.getName());
+            accountViewModel.setBank(accountEntity.getBank());
+            accountViewModel.setIban(accountEntity.getIban());
+            accountViewModel.setOwnerEntityId(accountEntity.getBelongsTo().getId());
+            accountViewModel.setDateClosed(accountEntity.getDateClosed());
+            accountViewModel.setDateCreated(accountEntity.getDateCreated());
+        }
+        Long saveNewAndReturnId(OwnerEntity ownerEntity, AccountEntity.AccountType accountType, String name, String iban, String bank, Date dateCreated, Date dateClosed) {
+            var accountEntity = new AccountEntity();
+            accountEntity.setBelongsTo(ownerEntity);
+            accountEntity.setAccountType(accountType);
+            accountEntity.setName(name);
+            accountEntity.setBank(bank);
+            accountEntity.setIban(iban);
+            accountEntity.setDateCreated(dateCreated);
+            accountEntity.setDateClosed(dateClosed);
+            return accountRepository.save(accountEntity).getId();
+        }
 }

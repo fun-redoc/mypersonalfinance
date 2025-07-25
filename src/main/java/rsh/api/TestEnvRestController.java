@@ -55,7 +55,8 @@ public class TestEnvRestController {
                 }
         }
 
-        @GetMapping("/api/generate")
+
+        @GetMapping("/api/self/generate")
         public String generate() {
                 generateOwnersUsersAccountsAndPosts();
                 return "Some Testdata generated";

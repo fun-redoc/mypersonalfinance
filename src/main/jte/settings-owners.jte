@@ -23,7 +23,6 @@
                                 settingsDialogState = settingsDialogState,
                                 vwerrors = vwerrors)
 
-@template.generalErrors(vwerrors = vwerrors)
 
 <article hidden="${!enabled}">
     <header>${localizer.localize("settings.article.header.owners")}</header>
@@ -46,7 +45,7 @@
                                 </a>
                                 &nbsp;
                                 <a href="#"
-                                   onclick="removeGroup(event, ${ownerWithForSupport.get().getId()})"a>
+                                   onclick='removeGroup(event, "${csrf.getToken()}", "${ownerWithForSupport.get().getId()}")'>
                                     ${localizer.localize("settings.article.groups.button.remove.group")}
                                 </a>
                             @else

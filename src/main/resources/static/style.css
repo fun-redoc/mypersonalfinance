@@ -11,12 +11,13 @@
 
 /* ---- error handling ---- */
 .error-message {
-    background-color: rgba(128, 0, 0, 0.7);
-    color: #ffffff;
-    padding: 10px;
+    color: var(--pico-form-element-invalid-focus-color);
+    padding-top: 10px;
+    padding-bottom: 1px;
+    padding-left: 10px;
+    padding-right: 10px;
     border-radius: 3px;
     text-align: center;
-    margin-bottom: 20px;
 }
 .logout-message {
     background-color: rgba(0, 0, 128, 0.7);

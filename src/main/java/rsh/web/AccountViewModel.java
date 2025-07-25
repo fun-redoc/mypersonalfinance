@@ -41,5 +41,6 @@ public class AccountViewModel {
 
     @DateTimeFormat(pattern = "yyyy-MM-dd")
     private Date dateClosed;
+
 }
 

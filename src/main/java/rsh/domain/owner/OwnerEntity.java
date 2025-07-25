@@ -1,6 +1,7 @@
 package rsh.domain.owner;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import org.hibernate.annotations.Cache;
 import org.hibernate.annotations.CacheConcurrencyStrategy;
@@ -25,8 +26,12 @@ public class OwnerEntity {
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "owner_seq")
     Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(targetEntity = UserEntity.class, fetch = FetchType.LAZY)
+    @JoinColumn(name = "admin")
+    @NotNull
     UserEntity admin;
+    @Column(name = "admin", insertable = false, updatable = false)
+    String adminUserId;
 
     // TODO there is a smell beeing dependent on an non-domain entity, how to make it better?
     @PrimaryKeyJoinColumn

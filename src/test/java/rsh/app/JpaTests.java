@@ -1,10 +1,8 @@
 package rsh.app;
 
 import jakarta.transaction.Transactional;
-import org.aspectj.lang.annotation.Before;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,10 +10,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.annotation.ComponentScan;
 import org.springframework.test.context.ActiveProfiles;
 import rsh.domain.account.AccountEntity;
 import rsh.domain.account.AccountRepository;
+//import rsh.domain.account.OBSOLETE_AccountService;
 import rsh.domain.account.deposit.DepositEntity;
 import rsh.domain.account.deposit.DepositRepository;
 import rsh.domain.account.deposit.TagEntity;
@@ -49,7 +47,7 @@ import static org.assertj.core.api.Assertions.*;
 //@EntityScan(basePackages = {"rsh.account", "rsh.user"})
 @MockBean(jakarta.servlet.http.HttpServletRequest.class)
 @MockBean(org.springframework.security.web.SecurityFilterChain.class)
-@MockBean(rsh.domain.account.AccountService.class)
+//@MockBean(OBSOLETE_AccountService.class)
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE) // Optional: Use real DB
 class JpaTests {
 	private static final Logger logger = LoggerFactory.getLogger(JpaTests.class);
@@ -107,9 +105,9 @@ class JpaTests {
 		var u2 = userRepository.save(UserEntity.builder().id("t2").username("testuser2").email("testuser2@example.com").owners(new HashSet<>()).build());
 		var u3 = userRepository.save(UserEntity.builder().id("t3").username("testuser3").email("testuser3@example.com").owners(new HashSet<>()).build());
 		var u4 = userRepository.save(UserEntity.builder().id("t4").username("testuser4").email("testuser4@example.com").owners(new HashSet<>()).build());
-		var group1 = ownerRepository.save(OwnerEntity.builder().name("group1").users(new HashSet<>()).build().addUser(u1).addUser(u2));
-		var group2 = ownerRepository.save(OwnerEntity.builder().name("group2").users(new HashSet<>()).build().addUser(u3).addUser(u4));
-		var group3 = ownerRepository.save(OwnerEntity.builder().name("group3").users(new HashSet<>()).build().addUser(u2).addUser(u3));
+		var group1 = ownerRepository.save(OwnerEntity.builder().name("group1").admin(u1).users(new HashSet<>()).build().addUser(u1).addUser(u2));
+		var group2 = ownerRepository.save(OwnerEntity.builder().name("group2").admin(u1).users(new HashSet<>()).build().addUser(u3).addUser(u4));
+		var group3 = ownerRepository.save(OwnerEntity.builder().name("group3").admin(u1).users(new HashSet<>()).build().addUser(u2).addUser(u3));
 		var groups = List.of(group1, group2, group3);
 		for(int i=0; i < ibans.size(); i++) {
 			var a = AccountEntity.builder()

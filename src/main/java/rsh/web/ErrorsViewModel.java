@@ -41,4 +41,11 @@ public class ErrorsViewModel {
                 && fieldMessages.get(fieldName).size() > 0;
     }
 
+    public void clear() {
+        messages.clear();
+        fieldMessages.forEach((key,val) ->  {
+            val.clear();
+        });
+        fieldMessages.clear();
+    }
 }

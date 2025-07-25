@@ -1,5 +1,6 @@
 package rsh.web;
 
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -9,13 +10,19 @@ import lombok.Builder;
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.ModelAndView;
+import rsh.conf.JteLocalizer;
 import rsh.domain.owner.OwnerEntity;
 import rsh.domain.owner.OwnerRepository;
 import rsh.user.UserBaseDto;
@@ -47,6 +54,11 @@ public class SettingsController extends ControllerBase {
 
     @Autowired
     MessageSource messageSource;
+
+    //@Autowired
+    //JteLocalizer localizer;
+    @Autowired
+    TransactionTemplate transactionTemplate;
 
     @ModelAttribute("username")
     public String username() {
@@ -104,8 +116,28 @@ public class SettingsController extends ControllerBase {
     //    return "settings";
     //}
 
+    //@ExceptionHandler(value = {DataIntegrityViolationException.class})
+    //public ResponseEntity<String> handlePreconditionFailed(DataIntegrityViolationException exception) {
+    //    System.err.println(exception);
+    //    return ResponseEntity.status(HttpStatus.CONFLICT).build();
+    //}
+    //@ExceptionHandler(value = {DataIntegrityViolationException.class})
+    //public ModelAndView handlePreconditionFailed(HttpServletRequest req,
+    //                                             DataIntegrityViolationException exception
+    //                                             ) {
+    //    System.err.println(exception);
+    //    var mav = new ModelAndView();
+    //    mav.setViewName("settings");
+    //    mav.addObject("localizer", localizer);
+    //    mav.addObject("vwerrors", new ErrorsViewModel());
+    //    mav.addObject("settingsDialogState", new SettingsDialogStateViewModel(SettingsDialogStateViewModel.DialogMode.OWNER_ADD));
+
+    //    return mav;
+    //}
+
     @PostMapping("/owners")
-    @Transactional
+    //@Transactional // in case of DB Errors such as data integrity error etc. the annotation seems barly usable
+    @Modifying
     public String saveOwnerWithUsers(@Valid @ModelAttribute("owner") final OwnerWithUserIds owner,
                                      final BindingResult bindingResult,
                                      @ModelAttribute("settingsDialogState") final SettingsDialogStateViewModel dialogStateViewModel,
@@ -115,40 +147,53 @@ public class SettingsController extends ControllerBase {
             bindingResultToError(bindingResult, errorsViewModel);
             return "settings";
         }
-        if(owner.oid == null) {
-            var ownerEntity = OwnerEntity.builder()
-                    .name(owner.getName())
-                    .admin(UserEntity.builder().id(getUser().getId()).build())
-                    .users(owner.getUserIds().stream().map(uid -> UserEntity.builder().id(uid).build()).collect(Collectors.toSet()))
-                    .build();
-            ownerRepository.save(ownerEntity);
-        } else {
-            try {
-                var ownerEntity = ownerRepository.findOwnerByIdFetchingUsers(owner.oid).orElseThrow();
-                if(!ownerEntity.getName().equals(owner.getName())) {
-                    ownerEntity.setName(owner.getName());
-                }
-                for(var uid:owner.getUserIds()) {
-                    if(!ownerEntity.getUsers().contains(UserEntity.builder().id(uid).build())) {
-                       // add this user as userEntity
-                        var userEntity = userRepository.findById(uid).orElseThrow();
-                        ownerEntity.addUser(userEntity);
+        try {
+            var retval = transactionTemplate.execute(status -> {
+                if(owner.oid == null) {
+                    var ownerEntity = OwnerEntity.builder()
+                            .name(owner.getName())
+                            .admin(UserEntity.builder().id(getUser().getId()).build())
+                            .users(owner.getUserIds().stream().map(uid -> UserEntity.builder().id(uid).build()).collect(Collectors.toSet()))
+                            .build();
+                    ownerRepository.save(ownerEntity);
+                } else {
+                    try {
+                        var ownerEntity = ownerRepository.findOwnerByIdFetchingUsers(owner.oid).orElseThrow();
+                        if(!ownerEntity.getName().equals(owner.getName())) {
+                            ownerEntity.setName(owner.getName());
+                        }
+                        for(var uid:owner.getUserIds()) {
+                            if(!ownerEntity.getUsers().contains(UserEntity.builder().id(uid).build())) {
+                                // add this user as userEntity
+                                var userEntity = userRepository.findById(uid).orElseThrow();
+                                ownerEntity.addUser(userEntity);
+                            }
+                        }
+                        for(var userEntity:ownerEntity.getUsers()) {
+                            if(!owner.getUserIds().contains(userEntity.getId())) {
+                                // remove this userEntity
+                                ownerEntity.getUsers().remove(userEntity);
+                                userEntity.getOwners().remove(ownerEntity);
+                            }
+                        }
+                        ownerRepository.save(ownerEntity);
+                    } catch (Exception e) {
+                        System.err.println(e);
+                        errorsViewModel.setMessages(List.of("errors.message.generic"));
                     }
                 }
-                for(var userEntity:ownerEntity.getUsers()) {
-                    if(!owner.getUserIds().contains(userEntity.getId())) {
-                       // remove this userEntity
-                        ownerEntity.getUsers().remove(userEntity);
-                        userEntity.getOwners().remove(ownerEntity);
-                    }
-                }
-                ownerRepository.save(ownerEntity);
-            } catch (Exception e) {
-                System.err.println(e);
-                errorsViewModel.setMessages(List.of("errors.message.generic"));
-            }
+                return  "redirect:/settings";
+            });
+            return retval;
+        } catch (DataIntegrityViolationException e) {
+            System.err.println(e);
+            errorsViewModel.setMessages(List.of("settings.owners.add.error.alreay.exists"));
+            return "settings";
+        } catch (Exception e) {
+            System.err.println(e);
+            errorsViewModel.setMessages(List.of("errors.message.generic"));
+            return "settings";
         }
-        return  "redirect:/settings";
     }
 
     @DeleteMapping("/owners/{oid}")
@@ -161,13 +206,14 @@ public class SettingsController extends ControllerBase {
         var user = getUser();
         try {
             var ownerEntity = ownerRepository.findById(oid).orElseThrow();
-            if(ownerEntity.getAdmin().getId().equals(user.getId())) {
-                throw new RuntimeException(String.format("ALERT: user %s tried to delete the group %s not beeing the group admin.", user.getUsername()));
+            if(!ownerEntity.getAdmin().getId().equals(user.getId())) {
+                throw new RuntimeException(String.format("ALERT: user %s tried to delete the group %s not beeing the group admin.", user.getUsername(), ownerEntity.getName()));
             }
             ownerRepository.delete(ownerEntity);
         } catch (Exception e) {
             System.err.println(e);
             errorsViewModel.setMessages(List.of("errors.message.generic"));
+            return ResponseEntity.status(401).build();
         } finally {
             return ResponseEntity.noContent().build();
         }

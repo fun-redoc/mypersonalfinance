@@ -29,6 +29,7 @@
                     onclick="toggleModal(event)"
             ></button>
             <h2>${localizer.localize("settings.owners.title.edit")}</h2>
+            @template.generalErrors(localizer = localizer, vwerrors = vwerrors)
         </header>
 
         <form id="formOwner"

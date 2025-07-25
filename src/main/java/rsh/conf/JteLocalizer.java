@@ -17,10 +17,10 @@ public class JteLocalizer implements gg.jte.support.LocalizationSupport {
 
     ResourceBundleMessageSource messageSource = new ResourceBundleMessageSource();
 
-    @Bean
-    JteLocalizer getBean() {
-        return this;
-    }
+    //@Bean
+    //JteLocalizer getBean() {
+    //    return this;
+    //}
 
     public JteLocalizer() {
         messageSource.setBasename("Messages");

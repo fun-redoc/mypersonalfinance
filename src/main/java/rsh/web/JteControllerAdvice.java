@@ -1,10 +1,15 @@
 package rsh.web;
 
+import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.web.csrf.CsrfToken;
 import org.springframework.ui.Model;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import rsh.conf.JteLocalizer;
 
 import java.util.ArrayList;
@@ -27,4 +32,11 @@ public class JteControllerAdvice {
 
     @ModelAttribute
     public void localizer(Model model, JteLocalizer localizer) {model.addAttribute("localizer", localizer);}
+
+//    @ResponseStatus(HttpStatus.CONFLICT)  // 409
+//    @ExceptionHandler(DataIntegrityViolationException.class)
+//    public void handleConflict(HttpServletRequest req, Exception e) {
+//        // Nothing to do
+//        System.err.println(e);
+//    }
 }
