@@ -13,7 +13,6 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
 import rsh.domain.account.AccountEntity;
 import rsh.domain.account.AccountRepository;
-//import rsh.domain.account.OBSOLETE_AccountService;
 import rsh.domain.account.deposit.DepositEntity;
 import rsh.domain.account.deposit.DepositRepository;
 import rsh.domain.account.deposit.TagEntity;
@@ -47,7 +46,6 @@ import static org.assertj.core.api.Assertions.*;
 //@EntityScan(basePackages = {"rsh.account", "rsh.user"})
 @MockBean(jakarta.servlet.http.HttpServletRequest.class)
 @MockBean(org.springframework.security.web.SecurityFilterChain.class)
-//@MockBean(OBSOLETE_AccountService.class)
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE) // Optional: Use real DB
 class JpaTests {
 	private static final Logger logger = LoggerFactory.getLogger(JpaTests.class);

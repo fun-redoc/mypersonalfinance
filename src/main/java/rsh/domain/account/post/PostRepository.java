@@ -8,4 +8,6 @@ import java.util.List;
 public interface PostRepository extends JpaRepository<PostEntity, Long> {
     public List<PostEntity> findPostsByToAccount(AccountEntity accountEntity);
     public List<PostEntity> findPostsByFromAccount(AccountEntity accountEntity);
+    public Long countPostsByToAccount(AccountEntity accountEntity);
+    public Long countPostsByFromAccount(AccountEntity accountEntity);
 }

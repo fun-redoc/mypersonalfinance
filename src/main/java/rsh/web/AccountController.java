@@ -8,13 +8,16 @@ import lombok.NoArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import rsh.domain.account.AccountEntity;
 import rsh.domain.account.AccountRepository;
-//import rsh.domain.account.OBSOLETE_AccountService;
 import rsh.domain.account.AccountsBaseData;
+import rsh.domain.account.deposit.DepositRepository;
+import rsh.domain.account.post.PostRepository;
 import rsh.domain.owner.OwnerEntity;
 import rsh.domain.owner.OwnerRepository;
 import rsh.user.UserEntity;
@@ -40,8 +43,6 @@ public class AccountController extends ControllerBase {
     }
     @Autowired
     AccountRepository accountRepository;
-    //@Autowired
-    //OBSOLETE_AccountService accountService;
     @Autowired
     OwnerRepository ownerRepository;
     @Autowired
@@ -49,6 +50,10 @@ public class AccountController extends ControllerBase {
 
     @Autowired
     MessageSource messageSource;
+    @Autowired
+    private PostRepository postRepository;
+    @Autowired
+    private DepositRepository depositRepository;
 
     @ModelAttribute("username")
     public String username() {
@@ -171,6 +176,40 @@ public class AccountController extends ControllerBase {
                         return "accounts";
                     });
         }
+
+    @DeleteMapping("/accounts/{aid}")
+    @Transactional
+    @Modifying
+    public ResponseEntity<Void> removeGroup(@PathVariable("aid") Long aid,
+                                            @ModelAttribute("accountDialogState") final AccountController.AccountDialogStateViewModel accountStateViewModel,
+                                            @ModelAttribute("vwerrors") ErrorsViewModel errorsViewModel) {
+        var user = getUser();
+        try {
+            var accountEntity = accountRepository.findById(aid).orElseThrow();
+            // check if user is an owner, if not then forbidden
+            if(!ownerRepository.findOwnerByUser(UserEntity.builder().id(user.getId()).build()).contains(accountEntity.getBelongsTo())) {
+                throw new RuntimeException(String.format("ALERT: user %s tried to delete an account %s not beeing an owner.", user.getUsername(), accountEntity.getName()));
+            }
+            // check if there are still posts aviailable, if so, forbidden
+            if(postRepository.countPostsByFromAccount(accountEntity) != 0 ||
+                    postRepository.countPostsByToAccount(accountEntity) != 0) {
+                throw new RuntimeException(String.format("ALERT: user %s tried to delete an account %s but there are still postings referring to this account.", user.getUsername(), accountEntity.getName()));
+            }
+
+            // check if there are still deposits refering this account, if so, forbidden
+            if(depositRepository.countDepositsByAccount(accountEntity) != 0) {
+                throw new RuntimeException(String.format("ALERT: user %s tried to delete an account %s but there are still depostits referring to this account.", user.getUsername(), accountEntity.getName()));
+            }
+
+            accountRepository.delete(accountEntity);
+        } catch (Exception e) {
+            System.err.println(e);
+            errorsViewModel.setMessages(List.of("errors.message.generic"));
+            return ResponseEntity.status(401).build();
+        } finally {
+            return ResponseEntity.noContent().build();
+        }
+    }
 
         void initAccountViewModelFromEntity(AccountViewModel accountViewModel, AccountEntity accountEntity) {
             accountViewModel.setId(accountEntity.getId());
