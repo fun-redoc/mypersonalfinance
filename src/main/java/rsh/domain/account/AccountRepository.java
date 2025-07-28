@@ -30,6 +30,24 @@ public interface AccountRepository extends JpaRepository<AccountEntity, Long> {
             """)
     List<AccountsBaseData> findBaseByUser(@Param("u") UserEntity userEntity);
 
+    @Query("""
+            select  new rsh.domain.account.AccountsBaseData(
+                    a.id,
+                    a.accountType,
+                    a.name,
+                    a.iban,
+                    a.bank,
+                    a.dateCreated,
+                    a.dateClosed,
+                    o.id,
+                    o.name,
+                    null,null)
+                from AccountEntity a
+                    inner join a.belongsTo o
+                    inner join o.users u
+                where u.id = :uid
+            """)
+    List<AccountsBaseData> findBaseByUserId(@Param("uid") String uid);
 
     @Query("""
             select a from AccountEntity a
@@ -65,7 +83,7 @@ public interface AccountRepository extends JpaRepository<AccountEntity, Long> {
                      a.dateClosed,
                      o.id,
                      o.name,
-                     (COALESCE((select sum(amount) from PostEntity where toAccount = a),\n0)),
+                     (COALESCE((select sum(amount) from PostEntity where toAccount = a),0)),
                      (COALESCE((select sum(amount) from PostEntity where fromAccount = a),0)))
                 from AccountEntity a
                     inner join a.belongsTo o

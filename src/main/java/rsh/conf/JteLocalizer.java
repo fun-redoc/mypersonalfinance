@@ -3,11 +3,13 @@ package rsh.conf;
 import gg.jte.Content;
 import gg.jte.TemplateOutput;
 import gg.jte.support.LocalizationSupport;
+import lombok.NoArgsConstructor;
 import org.springframework.context.NoSuchMessageException;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.context.support.ResourceBundleMessageSource;
+import org.springframework.lang.Nullable;
 
 import java.util.Locale;
 import java.util.Optional;
@@ -29,7 +31,7 @@ public class JteLocalizer implements gg.jte.support.LocalizationSupport {
     @Override
     public String lookup(String key) {
         var locale = LocaleContextHolder.getLocale();
-        return messageSource.getMessage(key, null, locale);
+        return getMessage(key, null, locale);
     }
 
 
@@ -39,7 +41,7 @@ public class JteLocalizer implements gg.jte.support.LocalizationSupport {
         return  new Content() {
             @Override
             public void writeTo(TemplateOutput templateOutput) {
-                templateOutput.writeContent(messageSource.getMessage(key, params, locale));
+                templateOutput.writeContent(getMessage(key, params, locale));
             }
         };
     }
@@ -47,7 +49,7 @@ public class JteLocalizer implements gg.jte.support.LocalizationSupport {
     public boolean containsKey(String key) {
         var locale = LocaleContextHolder.getLocale();
         try { // this is so ugly
-            messageSource.getMessage(key, null, locale);
+            getMessage(key, null, locale);
             return true;
         } catch (NoSuchMessageException e) {
             return false;
@@ -56,7 +58,7 @@ public class JteLocalizer implements gg.jte.support.LocalizationSupport {
     public Optional<Content> get(String key, Object... params) {
         var locale = LocaleContextHolder.getLocale();
         try{
-            var message = messageSource.getMessage(key, params, locale);
+            var message = getMessage(key, params, locale);
             return Optional.of(  new Content() {
                 @Override
                 public void writeTo(TemplateOutput templateOutput) {
@@ -65,6 +67,15 @@ public class JteLocalizer implements gg.jte.support.LocalizationSupport {
             });
         } catch (NoSuchMessageException _) {
            return Optional.empty();
+        }
+    }
+
+    private String getMessage(String key, @Nullable Object[] args, Locale locale) {
+        try {
+            return messageSource.getMessage(key, null, locale);
+        } catch (NoSuchMessageException e) {
+            System.err.println(e);
+            return key;
         }
     }
 }
