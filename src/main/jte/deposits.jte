@@ -51,7 +51,7 @@
 
 
         <!-- List of Deposits -->
-        @if(!allDeposits.isEmpty())
+        <%-- @if(!allDeposits.isEmpty()) --%>
         <section>
             <table id="deposits-table">
                 <thead>
@@ -108,7 +108,7 @@
                 </tbody>
             </table>
         </section>
-        @endif
+        <%-- @endif --%>
 `;}
 
 @template.layout(

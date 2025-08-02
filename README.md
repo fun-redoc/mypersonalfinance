@@ -8,8 +8,7 @@ Login via passkey.
 No passwords should be stored.
 
 ### IN PROGRESS
-+ BUG: Add first Deposit to an empty Deposits list
-+ savings/deposits edit
++ posts list
 
 ### DONE
 + register for passkey login with e-mail verification
@@ -21,13 +20,14 @@ No passwords should be stored.
 + savings/deposits list
 + savings/deposits add
 + savings/deposits delete
++ BUG: Add first Deposit to an empty Deposits list
   
 ### TODO
 + give post a name
-+ posts list
 + posts add
 + posts delete
 + posts edit
++ savings/deposits edit
 + adjust post selection in deposits having post name
 + make tag reusable within an owner group and provide autocompletion of tags whitin deposit new/edit dialog
 + make a productive version
