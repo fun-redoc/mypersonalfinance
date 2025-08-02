@@ -3,6 +3,7 @@ package rsh.domain.account.deposit;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -22,22 +23,9 @@ public interface DepositRepository extends JpaRepository<DepositEntity, Long> {
 
     record AccountListDTO(Long id, String name, String bank){}
 
-    record PostingDto(Long id, Date date, BigDecimal amount){
-        @Override
-        public boolean equals(Object other) {
-            if (this == other) return true;
-            if (other == null || getClass() != other.getClass())
-                return false;
-            return  this.id == ((PostingDto)other).id();
-        }
-        @Override
-        public int hashCode() {
-            return this.id.hashCode();
-        }
-    }
-
     @Data
     @AllArgsConstructor
+    @NoArgsConstructor
     class TagDto {
         Long id; // can be null, if recently entered
         @NotNull

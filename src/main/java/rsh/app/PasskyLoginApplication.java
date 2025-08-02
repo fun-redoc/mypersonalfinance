@@ -150,6 +150,24 @@ public class PasskyLoginApplication {
 							.amount(BigDecimal.ONE)
 							.build());
 			//assertThat(post3).hasFieldOrProperty("id").hasNoNullFieldsOrPropertiesExcept("deposit");
+			// a free post
+			var post4 = postRepository.save(
+					PostEntity.builder()
+							.date(Calendar.getInstance().getTime())
+							.fromAccount(account0)
+							.toAccount(account1)
+							.amount(BigDecimal.ONE)
+							.build());
+			//assertThat(post4).hasFieldOrProperty("id").hasNoNullFieldsOrPropertiesExcept("deposit");
+			// a free post
+			var post5 = postRepository.save(
+					PostEntity.builder()
+							.date(Calendar.getInstance().getTime())
+							.fromAccount(account0)
+							.toAccount(account1)
+							.amount(BigDecimal.ONE)
+							.build());
+			//assertThat(post5).hasFieldOrProperty("id").hasNoNullFieldsOrPropertiesExcept("deposit");
 
 			// deposit
 			var startDate = Calendar.getInstance();

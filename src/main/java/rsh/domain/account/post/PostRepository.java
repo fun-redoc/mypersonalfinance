@@ -22,11 +22,11 @@ public interface PostRepository extends JpaRepository<PostEntity, Long> {
                                                 p.amount,
                                                 null)
             from PostEntity p
-                inner join AccountEntity  a on a = p.toAccount
-                inner join OwnerEntity o on o = a.belongsTo
+                inner join p.toAccount.belongsTo as o
+                inner join o.users as u
             where
-                a.id = :aid
-            and :uid in elements(o.users)
+                p.toAccount.id = :aid
+            and :uid = u.id
             and p.deposit is null
             """)
     public List<PostDto> findPostsByToAccountAndDepositIsNull(@Param("uid") String userId,

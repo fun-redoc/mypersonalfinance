@@ -1,9 +1,12 @@
 @import org.springframework.security.web.csrf.CsrfToken
 @import rsh.conf.JteLocalizer
+@import rsh.domain.account.deposit.DepositDto
 @import rsh.domain.account.deposit.DepositListDto
-@import rsh.domain.owner.OwnerEntity
+@import rsh.domain.account.deposit.DepositRepository
+@import rsh.domain.account.deposit.InterestEntity
 @import rsh.web.DepositController
 @import rsh.web.JteControllerAdvice
+@import rsh.web.NullTollerantDateFormatter
 @import java.text.SimpleDateFormat
 @import java.util.Date
 @import java.util.List
@@ -12,13 +15,26 @@
 @param String username
 @param Date today
 @param List<DepositListDto> allDeposits
+@param List<DepositRepository.AccountListDTO> allAccounts
+@param List<InterestEntity.InterestType> allInterestTypes
+@param DepositDto deposit = null
 @param DepositController.DepositPageStatus viewStatus
 @param rsh.web.ErrorsViewModel vwerrors
 
-!{SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");}
+!{NullTollerantDateFormatter formatter = new NullTollerantDateFormatter(new SimpleDateFormat("yyyy-MM-dd"));}
 
 !{var pageContent = @`
 
+    @template.deposits_new( csrf = csrf,
+                            localizer = localizer,
+                            formatter = formatter ,
+                            deposit = deposit,
+                            username = username ,
+                            today = today,
+                            allAccounts = allAccounts,
+                            allInterestTypes = allInterestTypes,
+                            viewStatus = viewStatus,
+                            vwerrors = vwerrors)
     @template.generalErrors(vwerrors = vwerrors)
         <div role="group">
             <h2>${localizer.localize("deposits.my_deposits")}</h2>
@@ -62,9 +78,6 @@
                 @for(var deposit:allDeposits)
                     <tr class="deposit-row"
                         data-iscurrent="${deposit.getBegin().before(today) && today.before(deposit.getEnd())}"
-                        data-f1="${deposit.getBegin().before(today)}"
-                        data-f11="${today.after(deposit.getBegin())}"
-                        data-f2="${today.before(deposit.getEnd())}"
                         data-start="${formatter.format(deposit.getBegin())}"
                         data-end="${formatter.format(deposit.getEnd())}"
                         data-today="${formatter.format(today)}"
@@ -100,11 +113,12 @@
 
 @template.layout(
 localizer =localizer,
-currentMenu = JteControllerAdvice.MenuItem.ACOOUNTS,
-page = localizer.localize("accounts.page"),
+currentMenu = JteControllerAdvice.MenuItem.DEPOSITS,
+page = localizer.localize("deposits.page"),
 content = pageContent,
 additional_head = @`
     <script src="/security.js" ></script>
     <script src="/deposits.js" ></script>
+    <script src="/deposits_new.js" ></script>
 `
 )

@@ -5,7 +5,9 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
@@ -14,11 +16,9 @@ import rsh.domain.account.deposit.*;
 import rsh.domain.account.deposit.interest.FlatInterestEntity;
 import rsh.domain.account.deposit.interest.FlatPlusBonusAtEndInterestEntity;
 import rsh.domain.account.deposit.interest.InterestRepository;
-import rsh.domain.account.post.PostDto;
 import rsh.domain.account.post.PostRepository;
 import rsh.user.UserEntity;
 
-import java.math.BigDecimal;
 import java.util.*;
         import java.util.stream.Collectors;
 
@@ -29,26 +29,32 @@ public class DepositController extends ControllerBase {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class DepositPageStatus {
+        public enum DialogMode{EDIT, NEW, CLOSED};
         boolean showOnlyCurrent;
         boolean onlyCheck;
         boolean hideActions;
+        boolean dialogOpen;
+        DialogMode dialogMode;
     }
 
     final DepositRepository depositRepository;
     final PostRepository postRepository;
     final AccountRepository accountRepository;
     private final InterestRepository interestRepository;
+    private final TagRepository tagRepository;
     //final DepositPageStatus state = new DepositPageStatus(false, true);
 
     @Autowired
     public DepositController(final DepositRepository depositRepository,
                              final PostRepository postRepository,
                              final AccountRepository accountRepository,
-                             InterestRepository interestRepository) {
+                             InterestRepository interestRepository,
+                             TagRepository tagRepository) {
         this.depositRepository = depositRepository;
         this.postRepository = postRepository;
         this.accountRepository = accountRepository;
         this.interestRepository = interestRepository;
+        this.tagRepository = tagRepository;
     }
 
     @ModelAttribute("allDeposits")
@@ -105,52 +111,59 @@ public class DepositController extends ControllerBase {
 
     @GetMapping(value = "/deposits")
     public String getDeposits(
+            @ModelAttribute("deposit") DepositDto depositDto,
             @ModelAttribute("viewStatus") DepositPageStatus viewStatus,
             @ModelAttribute("vwerrors") ErrorsViewModel vwerrors) {
         viewStatus.setHideActions(false);
+        viewStatus.setDialogMode(DepositPageStatus.DialogMode.CLOSED);
+        viewStatus.setDialogOpen(false);
         return "deposits";
     }
+
     @GetMapping(value = "/deposits", params = {"showOnlyCurrent"})
 //    public String getDeposits(final String showOnlyCurrent) {
-    public String getDeposits(@ModelAttribute  final DepositPageStatus depositPageStatus) {
+    public String getDeposits(@ModelAttribute("viewStatus")  final DepositPageStatus viewStatus) {
 //        this.state.setShowOnlyCurrent(showOnlyCurrent.equals("yes"));
-
+        viewStatus.setHideActions(false);
+        viewStatus.setDialogMode(DepositPageStatus.DialogMode.CLOSED);
+        viewStatus.setDialogOpen(false);
         return "deposits";
     }
 
     @GetMapping(value = "/deposits/new")
-    public String getNewDeposit(@ModelAttribute("deposit") final DepositDto depositDto
-                                //,Model model
+    public String getNewDeposit(@ModelAttribute("deposit")    final DepositDto depositDto,
+                                @ModelAttribute("viewStatus") final DepositPageStatus viewStatus,
+                                @ModelAttribute("vwerrors")   final ErrorsViewModel vwerrors
     ) {
         var cal = Calendar.getInstance();
-        depositDto.setName("");
+        depositDto.clear();
         depositDto.setBegin(cal.getTime());
         cal.add(Calendar.YEAR, 1);
         depositDto.setFinish(cal.getTime());
-        //depositDto.setZeroInterest(new Interest());
-        depositDto.setTags(new ArrayList<>());
-        //depositDto.setTags(depositService
-        //        .findAllTags()
-        //        .stream()
-        //        .map(a ->new TagDto(a.getId(), a.getName()))
-        //        .toList());
-        return "new_deposit";
+        viewStatus.setDialogMode(DepositPageStatus.DialogMode.NEW);
+        viewStatus.setDialogOpen(true);
+        return "deposits";
     }
 
     @RequestMapping(value = {"/deposits/add", "/deposits/new"}, params = {"action"})
     public String actionHandler( @RequestParam (name = "action", required = true) final String action,
                                  @RequestParam (name = "id", required = false) final Long id,
+                                 @ModelAttribute("viewStatus") DepositPageStatus depositPageStatus,
+                                 @ModelAttribute("vwerrors")   final ErrorsViewModel vwerrors,
                                  @Valid @ModelAttribute("deposit") final DepositDto depositDto,
                                  final BindingResult bindingResultDeposit
+                                 //@ModelAttribute("deposit") final DepositDto depositDto
                                  //,final Model model
     ) {
         if(depositDto.getAccountId() != null) {
-            var freePostings = getFreePostingsFromDb(depositDto.getAccountId());
-            depositDto.setFreePostings(new ArrayList<>(freePostings));
+            //
         }
         switch(action) {
             case "account":
+                depositDto.setFreePostings(new ArrayList<>(getFreePostingsFromDb(depositDto.getAccountId())));
                 depositDto.setAssignedPostings(new ArrayList<>());
+                depositPageStatus.setDialogMode(DepositPageStatus.DialogMode.NEW);
+                depositPageStatus.setDialogOpen(true);
                 break;
             case "interest_type":
                 var interestType = depositDto.getInterestType();
@@ -163,25 +176,14 @@ public class DepositController extends ControllerBase {
                         default:throw new RuntimeException("unexpected.");
                     }
                 }
+                adjustAssignedAndFreePostings(depositDto);
+                depositPageStatus.setDialogMode(DepositPageStatus.DialogMode.NEW);
+                depositPageStatus.setDialogOpen(true);
                 break;
             case "add_posting":
-                if(depositDto.getAssignedPostings() == null) {
-                    depositDto.setAssignedPostings(new ArrayList<>());
-                }
-
-                depositDto.setFreePostings(new ArrayList<>());
-                var freePostings = getFreePostingsFromDb(depositDto.getAccountId());
-
-                var assignedPostings = depositDto.getAssignedPostings();
-                for(var p:freePostings) {
-                    if(!Objects.equals(p.id(), depositDto.getAddPostingId()) && !assignedPostings.contains(p)) {
-                        depositDto.getFreePostings().add(p);
-                    } else {
-                        if(Objects.equals(p.id(), depositDto.getAddPostingId())) {
-                            depositDto.getAssignedPostings().add(p);
-                        }
-                    }
-                }
+                adjustAssignedAndFreePostings(depositDto);
+                depositPageStatus.setDialogMode(DepositPageStatus.DialogMode.NEW);
+                depositPageStatus.setDialogOpen(true);
                 break;
             case "remove_posting":
                 if(id == null) {
@@ -191,9 +193,9 @@ public class DepositController extends ControllerBase {
                     throw new IllegalArgumentException("no postings to remove available.");
                 }
 
-                DepositRepository.PostingDto postingToDelete = null;
+                DepositPostingDto postingToDelete = null;
                 for(var assignedPosting : depositDto.getAssignedPostings()) {
-                    if(assignedPosting.id() == id) {
+                    if(assignedPosting.getId() == id) {
                         postingToDelete = assignedPosting;
                         break;
                     }
@@ -208,33 +210,69 @@ public class DepositController extends ControllerBase {
 
 
                 var filterIds = depositDto.getAssignedPostings().stream()
-                        .map(p->p.id()).toList();
+                        .map(p->p.getId()).toList();
 
                 var filteredFreePostings= filterFreePostings(depositDto.getAccountId(),
                         filterIds);
                 depositDto.setFreePostings(filteredFreePostings);
 
+                depositPageStatus.setDialogMode(DepositPageStatus.DialogMode.NEW);
+                depositPageStatus.setDialogOpen(true);
                 break;
             default:throw new RuntimeException("unknown action");
         }
-        return "new_deposit";
+        return "deposits";
+    }
+
+    private void adjustAssignedAndFreePostings(DepositDto depositDto) {
+        if(depositDto.getAssignedPostings() == null) {
+            depositDto.setAssignedPostings(new ArrayList<>());
+        }
+
+        if(depositDto.getFreePostings() == null) {
+            depositDto.setFreePostings(new ArrayList<>());
+        } else {
+            depositDto.getFreePostings().clear();
+        }
+        var freePostings = getFreePostingsFromDb(depositDto.getAccountId());
+
+        var assignedPostings = depositDto.getAssignedPostings();
+        for(var p:freePostings) {
+            if(!Objects.equals(p.getId(), depositDto.getAddPostingId()) && !assignedPostings.contains(p)) {
+                depositDto.getFreePostings().add(p);
+            } else {
+                if(Objects.equals(p.getId(), depositDto.getAddPostingId())) {
+                    depositDto.getAssignedPostings().add(p);
+                }
+            }
+        }
     }
 
     @PostMapping({"/deposits/add", "/deposits/new"})
-    public String addDeposit(@Valid @ModelAttribute("deposit") DepositDto depositDto,
-                             BindingResult bindingResultDeposit,
-                             Model model) {
+    @Transactional
+    @Modifying
+    public String addDeposit(
+                             @ModelAttribute("viewStatus") final DepositPageStatus viewStatus,
+                             @ModelAttribute("vwerrors")   final ErrorsViewModel vwerrors,
+                             @Valid @ModelAttribute("deposit") final DepositDto depositDto,
+                             final BindingResult bindingResultDeposit,
+                             final Model model) {
         if(bindingResultDeposit.hasErrors()) {
-            //return "new_deposit?fail";
-            return "new_deposit";
+            bindingResultToError(bindingResultDeposit, vwerrors);
+            viewStatus.setDialogMode(DepositPageStatus.DialogMode.NEW);
+            viewStatus.setDialogOpen(true);
+            return "deposits";
         }
-        if(!depositDto.isComplete()) {
-            return "new_deposit";
+        if(!depositDto.isComplete(vwerrors)) {
+            viewStatus.setDialogMode(DepositPageStatus.DialogMode.NEW);
+            viewStatus.setDialogOpen(true);
+            return "deposits";
         }
         var maybeDepositEntity =  accountRepository
                 .findById(depositDto.getAccountId())
                 .map(a->{ var depositEntity = DepositEntity.builder().build();
                     depositEntity.setAccount(a);
+                    depositEntity.setBelongsTo(a.getBelongsTo()); // TODO check if there is a need for deposits and account to belong to different groups/owners
                     depositEntity.setInterest(switch (depositDto.getInterestType()) {
                         case ZERO -> new InterestEntity();
                         case FLAT -> new FlatInterestEntity(depositDto.getBegin(), depositDto.getFinish(), depositDto.getFlatInterest().getAnnualRate());
@@ -245,7 +283,7 @@ public class DepositController extends ControllerBase {
                     depositEntity.setBegin(depositDto.getBegin());
                     depositEntity.setDue(depositDto.getFinish());
                     depositEntity.setPosts(depositDto.getAssignedPostings().stream().map(dto -> {
-                                var p = postRepository.findById(dto.id());
+                                var p = postRepository.findById(dto.getId());
                                 p.ifPresent(p_->p_.setDeposit(depositEntity));
                                 return p.orElseThrow();
                             })
@@ -261,43 +299,75 @@ public class DepositController extends ControllerBase {
                 });
 
         if(maybeDepositEntity.isPresent()) {
-            depositRepository.save(maybeDepositEntity.get());
-            return "redirect:/deposits";
+            var depositEntity = depositRepository.save(maybeDepositEntity.get());
+            if(depositEntity == null) {
+                System.err.println(String.format("Saving of deposit failed for user id %s, repository save returned with null value", getUser().getId() ));
+                vwerrors.getMessages().add("deposits.save.failed");
+                viewStatus.setDialogMode(DepositPageStatus.DialogMode.NEW);
+                viewStatus.setDialogOpen(true);
+                return "deposits";
+            } else {
+                return "redirect:/deposits";
+            }
         } else {
-            System.err.println("something went wrong");
-            return "new_deposit?fail"; // TODO LOG Error
+            System.err.println(String.format("Saving of deposit failed for user id %s, deposit entity object is empty", getUser().getId() ));
+            vwerrors.getMessages().add("deposits.save.failed");
+            viewStatus.setDialogMode(DepositPageStatus.DialogMode.NEW);
+            viewStatus.setDialogOpen(true);
+            return "deposits";
         }
 
     }
 
     @RequestMapping(value = "/deposits/delete/{id}")
-    public String removeDeposit(@PathVariable("id") final Long id) {
+    @Transactional
+    @Modifying
+    public String removeDeposit(@PathVariable("id") final Long id,
+                             @ModelAttribute("viewStatus") final DepositPageStatus viewStatus,
+                             @ModelAttribute("vwerrors")   final ErrorsViewModel vwerrors
+    ) {
         if(id==null) {
-            return "redirect:/deposits?fail";
+            System.err.println(String.format("Deleting of deposit failed for user id %s, parameter id has null value", getUser().getId() ));
+            vwerrors.getMessages().add("deposits.delete.failed");
+            viewStatus.setDialogMode(DepositPageStatus.DialogMode.CLOSED);
+            viewStatus.setDialogOpen(false);
+            return "deposits";
         }
-        // delete deposits and all assignments, eg. in deposits_tags table
-        depositRepository.deleteById(id);
-        return "redirect:/deposits";
+        // delete deposits and all assignments, eg. in deposits_tags table, deposit_posts etc.
+        var maybeDepositEntity = depositRepository.findById(id);
+        if(maybeDepositEntity.isEmpty()) {
+            System.err.println(String.format("Deleting of deposit failed for user id %s, no deposit for id %d available", getUser().getId(), id ));
+            vwerrors.getMessages().add("deposits.delete.failed");
+            viewStatus.setDialogMode(DepositPageStatus.DialogMode.CLOSED);
+            viewStatus.setDialogOpen(false);
+            return "deposits";
+        }
+        return maybeDepositEntity.map(depositEntity -> {
+            depositRepository.delete(depositEntity);
+            depositEntity.getTags().forEach(tagEntity -> {tagEntity.getDeposits().remove(depositEntity);});
+            depositEntity.getPosts().forEach(postEntity -> {postEntity.setDeposit(null);});
+            return "redirect:/deposits";
+        }).orElse("deposits");
     }
 
-    private List<DepositRepository.PostingDto> getFreePostingsFromDb(Long accountId) {
+    private List<DepositPostingDto> getFreePostingsFromDb(Long accountId) {
         return postRepository
                 .findPostsByToAccountAndDepositIsNull(getUser().getId(), accountId)
                 .stream().map(entity ->
-                        new DepositRepository.PostingDto(entity.getId(),
+                        new DepositPostingDto(entity.getId(),
                                 entity.getDate(),
                                 entity.getAmount()))
                 .toList();
     }
-    private List<DepositRepository.PostingDto> filterFreePostings(Long accountId, List<Long> filterPostingsIds) {
+    private List<DepositPostingDto> filterFreePostings(Long accountId, List<Long> filterPostingsIds) {
 
         var freePostings = getFreePostingsFromDb(accountId);
-        var res = new ArrayList<DepositRepository.PostingDto>();
+        var res = new ArrayList<DepositPostingDto>();
 
         for(var free:freePostings) {
             boolean isFiltered = false;
             for(var filterId:filterPostingsIds) {
-                if(free.id().equals(filterId)) {
+                if(free.getId().equals(filterId)) {
                     isFiltered = true;
                     break;
                 }

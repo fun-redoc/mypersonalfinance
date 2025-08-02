@@ -1,7 +1,6 @@
 @import org.springframework.security.web.csrf.CsrfToken
 @import rsh.conf.JteLocalizer
 @import rsh.domain.account.AccountEntity
-@import rsh.domain.account.AccountRepository
 @import rsh.domain.account.AccountsBaseData
 @import rsh.domain.owner.OwnerEntity
 @import rsh.web.AccountController
