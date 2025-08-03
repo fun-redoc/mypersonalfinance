@@ -129,6 +129,7 @@ public class PasskyLoginApplication {
 			var post1 = postRepository.save(
 					PostEntity.builder()
 							.date(Calendar.getInstance().getTime())
+							.name(String.format("Post from %s to %s", account0.getName(), account1.getName()))
 							.fromAccount(account0)
 							.toAccount(account1)
 							.amount(BigDecimal.ONE)
@@ -137,6 +138,7 @@ public class PasskyLoginApplication {
 			var post2 = postRepository.save(
 					PostEntity.builder()
 							.date(Calendar.getInstance().getTime())
+							.name(String.format("Post from %s to %s", account0.getName(), account1.getName()))
 							.fromAccount(account0)
 							.toAccount(account1)
 							.amount(BigDecimal.ONE)
@@ -145,6 +147,7 @@ public class PasskyLoginApplication {
 			var post3 = postRepository.save(
 					PostEntity.builder()
 							.date(Calendar.getInstance().getTime())
+							.name(String.format("Post from %s to %s", account0.getName(), account1.getName()))
 							.fromAccount(account0)
 							.toAccount(account1)
 							.amount(BigDecimal.ONE)
@@ -154,6 +157,7 @@ public class PasskyLoginApplication {
 			var post4 = postRepository.save(
 					PostEntity.builder()
 							.date(Calendar.getInstance().getTime())
+							.name(String.format("Post from %s to %s", account0.getName(), account1.getName()))
 							.fromAccount(account0)
 							.toAccount(account1)
 							.amount(BigDecimal.ONE)
@@ -163,6 +167,7 @@ public class PasskyLoginApplication {
 			var post5 = postRepository.save(
 					PostEntity.builder()
 							.date(Calendar.getInstance().getTime())
+							.name(String.format("Post from %s to %s", account0.getName(), account1.getName()))
 							.fromAccount(account0)
 							.toAccount(account1)
 							.amount(BigDecimal.ONE)

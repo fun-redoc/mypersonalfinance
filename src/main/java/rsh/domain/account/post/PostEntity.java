@@ -26,6 +26,9 @@ public class PostEntity {
     @Column(name = "id", updatable = false, unique = true, nullable = false)
     private Long id;
 
+    @Column(name = "name", nullable = false)
+    private String name;
+
 //    @PrimaryKeyJoinColumn
 //    @ManyToOne
 //    private OwnerEntity belongsTo;

@@ -24,14 +24,21 @@ import java.util.Date;
 public class PostDto {
     private Long id;
 
+    @NotNull(message = "posts.error.name.mandatory")
+    private String name;
+
     @NotNull(message = "posts.error.date.mandatory")
     private Date date;
 
     @NotNull(message = "posts.error.fromAccount.mandatory")
     private Long fromAccountId;
 
+    private String fromAccountName;
+
     @NotNull(message = "posts.error.toAccount.mandatory")
     private Long toAccountId;
+
+    private String toAccountName;
 
     @NotNull(message = "posts.error.amount.mandatory")
     private BigDecimal amount;

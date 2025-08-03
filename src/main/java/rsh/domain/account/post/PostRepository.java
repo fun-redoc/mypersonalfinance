@@ -16,9 +16,12 @@ public interface PostRepository extends JpaRepository<PostEntity, Long> {
     @Query("""
             select new rsh.domain.account.post.PostDto(
                                                 p.id,
+                                                p.name,
                                                 p.date,
                                                 p.fromAccount.id,
+                                                p.fromAccount.name,
                                                 p.toAccount.id,
+                                                p.toAccount.name,
                                                 p.amount,
                                                 null)
             from PostEntity p
@@ -31,4 +34,23 @@ public interface PostRepository extends JpaRepository<PostEntity, Long> {
             """)
     public List<PostDto> findPostsByToAccountAndDepositIsNull(@Param("uid") String userId,
                                                 @Param("aid") Long accountId);
+
+    @Query("""
+            select new rsh.domain.account.post.PostDto(
+                                                p.id,
+                                                p.name,
+                                                p.date,
+                                                p.fromAccount.id,
+                                                p.fromAccount.name,
+                                                p.toAccount.id,
+                                                p.toAccount.name,
+                                                p.amount,
+                                                p.deposit.id)
+            from PostEntity p
+                inner join p.toAccount.belongsTo as o
+                inner join o.users as u
+            where
+                :uid = u.id
+            """)
+    public List<PostDto> findPostsByUserId(@Param("uid") String userId);
 }
