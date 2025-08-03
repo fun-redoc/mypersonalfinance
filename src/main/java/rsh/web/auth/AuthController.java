@@ -1,4 +1,4 @@
-package rsh.web;
+package rsh.web.auth;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -37,7 +37,6 @@ import rsh.conf.WebAuthnProperties;
 import rsh.user.UserBaseDto;
 import rsh.user.UserEntity;
 import rsh.user.UserRepository;
-import rsh.user.UserService;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;

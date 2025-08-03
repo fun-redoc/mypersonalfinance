@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import rsh.domain.account.deposit.interest.FlatInterestEntity;
 import rsh.domain.account.deposit.interest.FlatPlusBonusAtEndInterestEntity;
-import rsh.web.ErrorsViewModel;
+import rsh.web.base.ErrorsViewModel;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;

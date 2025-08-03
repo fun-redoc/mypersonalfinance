@@ -1,8 +1,7 @@
-package rsh.web;
+package rsh.web.base;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.logging.SimpleFormatter;
 
 public record NullTollerantDateFormatter(SimpleDateFormat simpleDateFormatter) {
     public String format(Date date) {

@@ -1,4 +1,4 @@
-package rsh.web;
+package rsh.web.deposit;
 
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
@@ -18,6 +18,8 @@ import rsh.domain.account.deposit.interest.FlatPlusBonusAtEndInterestEntity;
 import rsh.domain.account.deposit.interest.InterestRepository;
 import rsh.domain.account.post.PostRepository;
 import rsh.user.UserEntity;
+import rsh.web.base.ErrorsViewModel;
+import rsh.web.account.ControllerBase;
 
 import java.util.*;
         import java.util.stream.Collectors;

@@ -1,6 +1,7 @@
 @import rsh.conf.JteLocalizer
+@import rsh.web.base.ErrorsViewModel
 @param String fieldName
-@param rsh.web.ErrorsViewModel vwerrors
+@param ErrorsViewModel vwerrors
 @param JteLocalizer localizer
 
     <ul id="err-${fieldName}">

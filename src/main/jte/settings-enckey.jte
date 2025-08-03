@@ -2,7 +2,7 @@
 @param JteLocalizer localizer
 @param String name
 @param boolean enabled = true
-@param rsh.web.ErrorsViewModel vwerrors
+@param rsh.web.base.ErrorsViewModel vwerrors
 
 
 @template.generalErrors(vwerrors = vwerrors)

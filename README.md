@@ -8,7 +8,7 @@ Login via passkey.
 No passwords should be stored.
 
 ### IN PROGRESS
-+ posts list
++ posts add
 
 ### DONE
 + register for passkey login with e-mail verification
@@ -21,10 +21,10 @@ No passwords should be stored.
 + savings/deposits add
 + savings/deposits delete
 + BUG: Add first Deposit to an empty Deposits list
++ posts list
++ give post a name
   
 ### TODO
-+ give post a name
-+ posts add
 + posts delete
 + posts edit
 + savings/deposits edit

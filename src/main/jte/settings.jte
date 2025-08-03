@@ -3,7 +3,8 @@
 @import rsh.domain.owner.OwnerEntity
 @import rsh.user.UserBaseDto
 @import rsh.web.*
-@import rsh.web.JteControllerAdvice
+@import rsh.web.auth.JteControllerAdvice
+@import rsh.web.settings.SettingsController
 @import java.util.List
 @import java.util.Optional
 @param JteLocalizer localizer
@@ -14,7 +15,7 @@
 @param List<OwnerEntity> allOwnersUserIsAdmin
 @param SettingsController.OwnerWithUserIds owner = null
 @param SettingsController.SettingsDialogStateViewModel settingsDialogState
-@param rsh.web.ErrorsViewModel vwerrors
+@param rsh.web.base.ErrorsViewModel vwerrors
 
 
 !{var pageContent = @`

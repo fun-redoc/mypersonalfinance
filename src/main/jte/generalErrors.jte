@@ -1,5 +1,5 @@
 @param rsh.conf.JteLocalizer localizer = null
-@param rsh.web.ErrorsViewModel vwerrors
+@param rsh.web.base.ErrorsViewModel vwerrors
 
 @if(vwerrors.hasNoFieldsMessages())
     <div class="error-message">

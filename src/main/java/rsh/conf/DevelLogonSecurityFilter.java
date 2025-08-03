@@ -6,17 +6,13 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.security.core.authority.AuthorityUtils;
-import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.web.filter.OncePerRequestFilter;
-import rsh.api.TestEnvRestController;
 import rsh.user.UserBaseDto;
 import rsh.user.UserEntity;
 import rsh.user.UserRepository;
-import rsh.web.MyAuthenticationToken;
+import rsh.web.auth.MyAuthenticationToken;
 
 import java.io.IOException;
 

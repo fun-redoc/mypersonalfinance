@@ -3,7 +3,7 @@
 @import rsh.conf.JteLocalizer
 @import rsh.domain.owner.OwnerEntity
 @import rsh.user.UserBaseDto
-@import rsh.web.SettingsController
+@import rsh.web.settings.SettingsController
 @import java.util.List
 @param JteLocalizer localizer
 @param CsrfToken csrf
@@ -14,7 +14,7 @@
 @param List<OwnerEntity> allOwnersUserIsAdmin
 @param boolean enabled = true
 @param SettingsController.SettingsDialogStateViewModel settingsDialogState
-@param rsh.web.ErrorsViewModel vwerrors
+@param rsh.web.base.ErrorsViewModel vwerrors
 
 @template.settings-owners-add(localizer = localizer,
                                 csrf = csrf,

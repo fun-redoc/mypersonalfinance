@@ -4,9 +4,10 @@
 @import rsh.domain.account.deposit.DepositListDto
 @import rsh.domain.account.deposit.DepositRepository
 @import rsh.domain.account.deposit.InterestEntity
-@import rsh.web.DepositController
-@import rsh.web.JteControllerAdvice
-@import rsh.web.NullTollerantDateFormatter
+@import rsh.web.base.ErrorsViewModel
+@import rsh.web.deposit.DepositController
+@import rsh.web.auth.JteControllerAdvice
+@import rsh.web.base.NullTollerantDateFormatter
 @import java.text.SimpleDateFormat
 @import java.util.Date
 @import java.util.List
@@ -19,7 +20,7 @@
 @param List<InterestEntity.InterestType> allInterestTypes
 @param DepositDto deposit = null
 @param DepositController.DepositPageStatus viewStatus
-@param rsh.web.ErrorsViewModel vwerrors
+@param ErrorsViewModel vwerrors
 
 !{NullTollerantDateFormatter formatter = new NullTollerantDateFormatter(new SimpleDateFormat("yyyy-MM-dd"));}
 

@@ -3,9 +3,10 @@
 @import rsh.domain.account.AccountEntity
 @import rsh.domain.account.AccountsBaseData
 @import rsh.domain.owner.OwnerEntity
-@import rsh.web.AccountController
-@import rsh.web.AccountViewModel
-@import rsh.web.JteControllerAdvice
+@import rsh.web.account.AccountController
+@import rsh.web.account.AccountViewModel
+@import rsh.web.auth.JteControllerAdvice
+@import rsh.web.base.ErrorsViewModel
 @import java.text.SimpleDateFormat
 @import java.util.List
 @import java.util.Optional
@@ -17,7 +18,7 @@
 @param List<OwnerEntity> usersOwnerEntities
 @param AccountController.AccountDialogStateViewModel accountDialogState
 @param AccountViewModel accountViewModel
-@param rsh.web.ErrorsViewModel vwerrors
+@param ErrorsViewModel vwerrors
 
 !{SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");}
 

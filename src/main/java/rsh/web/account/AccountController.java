@@ -1,4 +1,4 @@
-package rsh.web;
+package rsh.web.account;
 
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
@@ -22,6 +22,7 @@ import rsh.domain.owner.OwnerEntity;
 import rsh.domain.owner.OwnerRepository;
 import rsh.user.UserEntity;
 import rsh.user.UserService;
+import rsh.web.base.ErrorsViewModel;
 
 import java.util.*;
 

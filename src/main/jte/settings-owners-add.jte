@@ -2,8 +2,8 @@
 @import org.springframework.security.web.csrf.CsrfToken
 @import rsh.conf.JteLocalizer
 @import rsh.user.UserBaseDto
-@import rsh.web.SettingsController
-@import rsh.web.SettingsController.OwnerWithUserIds
+@import rsh.web.settings.SettingsController
+@import rsh.web.settings.SettingsController.OwnerWithUserIds
 @import java.util.ArrayList
 @import java.util.List
 @param JteLocalizer localizer
@@ -11,7 +11,7 @@
 @param List<UserBaseDto> users
 @param SettingsController.OwnerWithUserIds editOwner = null
 @param SettingsController.SettingsDialogStateViewModel settingsDialogState
-@param rsh.web.ErrorsViewModel vwerrors
+@param rsh.web.base.ErrorsViewModel vwerrors
 
 @if(editOwner == null)
     !{editOwner = OwnerWithUserIds.builder().build();}

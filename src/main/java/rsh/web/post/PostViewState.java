@@ -1,4 +1,4 @@
-package rsh.web;
+package rsh.web.post;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

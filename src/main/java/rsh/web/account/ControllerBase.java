@@ -1,4 +1,4 @@
-package rsh.web;
+package rsh.web.account;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -6,6 +6,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.validation.BindingResult;
 import rsh.user.UserBaseDto;
 import rsh.user.UserRepository;
+import rsh.web.base.ErrorsViewModel;
 
 import java.util.ArrayList;
 

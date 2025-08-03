@@ -1,4 +1,4 @@
-package rsh.web;
+package rsh.web.account;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -7,7 +7,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import rsh.domain.account.AccountEntity;
-import rsh.domain.owner.OwnerEntity;
 
 import java.math.BigDecimal;
 import java.util.Date;

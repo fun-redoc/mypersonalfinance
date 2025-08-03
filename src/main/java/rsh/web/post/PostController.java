@@ -1,4 +1,4 @@
-package rsh.web;
+package rsh.web.post;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -16,6 +16,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import rsh.domain.account.AccountRepository;
 import rsh.domain.account.post.PostEntity;
 import rsh.domain.account.post.PostRepository;
+import rsh.web.account.ControllerBase;
+import rsh.web.base.ErrorsViewModel;
 
 import java.math.BigDecimal;
 import java.util.Calendar;
@@ -23,7 +25,7 @@ import java.util.Date;
 import java.util.List;
 
 @Controller
-public class PostController extends ControllerBase  {
+public class PostController extends ControllerBase {
     @Data
     @AllArgsConstructor
     @NoArgsConstructor
@@ -82,7 +84,7 @@ public class PostController extends ControllerBase  {
     @SuppressWarnings("SameReturnValue")
     @GetMapping("/posts")
     public String getPosts(@ModelAttribute("post") final PostDTO post,
-                           @ModelAttribute("viewState") final PostViewState postViewState,
+                           @ModelAttribute("viewStatus") final PostViewState postViewState,
                            @ModelAttribute("vwerrors") final ErrorsViewModel vwerrors) {
         post.setDate(Calendar.getInstance().getTime());
         postViewState.setDialogOpen(false);
@@ -107,7 +109,7 @@ public class PostController extends ControllerBase  {
     }
 
     @GetMapping("/posts/edit/{id}")
-    public String editPost(@PathVariable("id") final Long id,
+    public String editPost(@PathVariable("editPostId") final Long id,
                            @ModelAttribute("post") final PostDTO postDTO,
                            @ModelAttribute("state") final PostViewState postViewState) {
         var maybePostEntity = postRepository.findById(id);

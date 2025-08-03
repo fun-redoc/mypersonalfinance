@@ -1,6 +1,6 @@
 @import gg.jte.Content
 @import rsh.conf.JteLocalizer
-@import rsh.web.JteControllerAdvice
+@import rsh.web.auth.JteControllerAdvice
 @param JteLocalizer localizer
 @param JteControllerAdvice.MenuItem currentMenu = null
 @param Content page

@@ -4,8 +4,9 @@
 @import rsh.domain.account.deposit.DepositDto
 @import rsh.domain.account.deposit.DepositRepository
 @import rsh.domain.account.deposit.InterestEntity
-@import rsh.web.DepositController
-@import rsh.web.NullTollerantDateFormatter
+@import rsh.web.base.ErrorsViewModel
+@import rsh.web.deposit.DepositController
+@import rsh.web.base.NullTollerantDateFormatter
 @import java.util.Date
 @import java.util.List
 @import java.util.Optional
@@ -18,7 +19,7 @@
 @param List<DepositRepository.AccountListDTO> allAccounts
 @param List<InterestEntity.InterestType> allInterestTypes
 @param DepositController.DepositPageStatus viewStatus
-@param rsh.web.ErrorsViewModel vwerrors
+@param ErrorsViewModel vwerrors
 
 <dialog id="keyEntry" >
     <%--        <article th:replace="settings.html::enckey(false)"></article> --%>

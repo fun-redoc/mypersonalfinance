@@ -9,75 +9,86 @@
 @import java.util.List
 @param CsrfToken csrf
 @param JteLocalizer localizer
+@param NullTollerantDateFormatter formatter
 @param PostViewState viewStatus
-@param rsh.web.base.ErrorsViewModel vwerrors
-@param List<PostController.PostListDTO> allPosts
-@param PostController.PostDTO post
-@param List<PostController.AccountListDTO> allAccounts
 @param Long editPostId
-@param String username
-@param Date today
+@param List<PostController.PostListDTO> allPosts
+@param List<PostController.AccountListDTO> allAccounts
+@param PostController.PostDTO post
+@param rsh.web.base.ErrorsViewModel vwerrors
 
-!{NullTollerantDateFormatter formatter = new NullTollerantDateFormatter(new SimpleDateFormat("yyyy-MM-dd"));}
+@template.generalErrors(vwerrors = vwerrors)
 
-!{var pageContent = @`
-
-    @template.generalErrors(vwerrors = vwerrors)
-
-    @template.posts_new(csrf = csrf, localizer = localizer, formatter = formatter, viewStatus = viewStatus, editPostId = editPostId, allPosts = allPosts, allAccounts = allAccounts, post = post, vwerrors = vwerrors)
-
-    <!--symotion-f) List of Accounts -->
     <section>
-        <div role="group">
-            <h2>${localizer.localize("posts.my_posts")}</h2>
+        <dialog id="modalEditAddDialog" open="${viewStatus.getDialogOpen()}">
+            <article>
+                <header>
+                    <button
+                            aria-label="Close"
+                            rel="prev"
+                            data-target="modalEditAddDialog"
+                            onclick="toggleModal(event)"
+                    ></button>
+                    <h2> ${viewStatus.getDialogMode().equals(PostController.DialogMode.EDIT)?
+                             localizer.localize("posts.dialog.edit") : localizer.localize("posts.dialog.new")}
+                    </h2>
+                </header>
+                !{var formAction = "#";}
+                @if(viewStatus.getDialogMode().equals(PostController.DialogMode.EDIT))
+                    !{formAction="/posts/edit/"+editPostId;}
+                @elseif(viewStatus.getDialogMode().equals(PostController.DialogMode.ADD))
+                    !{formAction="/posts/edit/"+editPostId;}
+                @else
+                        <%-- should not happen --%>
+                @endif
+                <form action="${formAction}" method="post">
+                    <label for="date">${localizer.localize("posts.post.date")}</label>
+                    <input type="date" id="date" name="date" value="${formatter.format(post.getDate())}"/>
+                    @template.fieldErrors(fieldName = "date", vwerrors = vwerrors, localizer = localizer)
 
-            <button id="btnOpenNewAccountModal"
-                    data-target="modalEditAddDialog"
-                    onclick="toggleModal(event)"
-            >${localizer.localize("posts.dialog.new")}
-            </button>
-        </div>
-        @if(!allPosts.isEmpty())
-        <table>
-            <thead>
-            <tr>
-                <!-- <th th:text="#{posts.list.id}}>ID</th> -->
-                <th>${localizer.localize("posts.list.date")}</th>
-                <th>${localizer.localize("posts.list.amount")}</th>
-                <th>${localizer.localize("posts.list.from")}</th>
-                <th>${localizer.localize("posts.list.to")}</th>
-                <th>${localizer.localize("posts.list.action")}</th>
-            </tr>
-            </thead>
-            <tbody>
-            @for(var post:allPosts)
-            <tr>
-                <!--        <td th:text="${post.id()}"></td> -->
-                <td>${formatter.format(post.date())}"</td>
-                <td>${post.amount()}"</td>
-                <td>${post.fromAccountName()}"</td>
-                <td>${post.toAccountName()}"</td>
-                <td>
-                    <a href="/posts/edit/${post.id()}" role="link">${localizer.localize("button.text.edit")}</a>
-                    <a href="/posts/delete/${post.id()}" role="link" class="secondary">${localizer.localize("button.text.delete")}</a>
-                </td>
-            </tr>
-            @endfor
-            </tbody>
-        </table>
-        @endif
+                    <fieldset>
+                        <legend>${localizer.localize("posts.post.from")}</legend>
+                        <select name="formAccountId" value="${post.getFromAccountId()}" aria-label="Select your from account." required>
+                            <option selected disabled value="">${localizer.localize("posts.dialog.select.account")}</option>
+                            @for(var ac:allAccounts)
+                                <option value="${ac.id()}">${ac.name()}</option>
+                            @endfor
+                        </select>
+                    </fieldset>
+
+                    <fieldset>
+                        <legend>${localizer.localize("posts.post.to")}</legend>
+                        <select name="toAccountId" value="${post.getToAccountId()}" aria-label="Select your to account." required>
+                            <option selected disabled value="">${localizer.localize("posts.dialog.select.account")}</option>
+                            @for(var ac:allAccounts)
+                                <option value="${ac.id()}">${ac.name()}</option>
+                            @endfor
+                        </select>
+                    </fieldset>
+
+                    <label for="amount">${localizer.localize("posts.dialog.amount")}</label>
+                    <input type="number" inputmode="decimal" min="0.01" step="0.01"  id="amount" name="amount" required value="${post.getAmount()}" />
+                    @template.fieldErrors(fieldName = "date", vwerrors = vwerrors, localizer = localizer)
+
+                    <footer>
+                        <div role="group">
+                            <button role="button"
+                                    class="secondary"
+                                    data-target="modalEditAddDialog"
+                                    onclick="toggleModal(event)"
+                                    >${localizer.localize("button.text.cancel")}
+                            </button>
+                            <button autofocus type="submit"
+                                    role="button"
+                                    class="contrast"
+                                   >${localizer.localize("button.text.submit")}
+                            </button>
+                        </div>
+                    </footer>
+                </form>
+            </article>
+        </dialog>
     </section>
-`;}
-
-@template.layout(
-localizer =localizer,
-currentMenu = JteControllerAdvice.MenuItem.POSTS,
-page = localizer.localize("posts.page"),
-content = pageContent,
-additional_head = @`
-    <script src="/security.js" ></script>
-`
-)
 
 <%--
   <section>

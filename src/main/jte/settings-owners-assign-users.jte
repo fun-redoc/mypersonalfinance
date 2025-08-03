@@ -1,6 +1,6 @@
 @import rsh.conf.JteLocalizer
 @import rsh.user.UserBaseDto
-@import rsh.web.SettingsController
+@import rsh.web.settings.SettingsController
 @import java.util.ArrayList
 @import java.util.HashMap
 @import java.util.List
@@ -8,7 +8,7 @@
 @param JteLocalizer localizer
 @param List<UserBaseDto> users
 @param SettingsController.OwnerWithUserIds editOwner
-@param rsh.web.ErrorsViewModel vwerrors
+@param rsh.web.base.ErrorsViewModel vwerrors
 
 
 <h2>${localizer.localize("settings.owner.assign.groups")}</h2>

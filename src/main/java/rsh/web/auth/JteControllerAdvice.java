@@ -1,4 +1,4 @@
-package rsh.web;
+package rsh.web.auth;
 
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.dao.DataIntegrityViolationException;
