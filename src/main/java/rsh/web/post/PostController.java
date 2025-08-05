@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -92,10 +93,11 @@ public class PostController extends ControllerBase {
         return "posts";
     }
 
-    @PostMapping("/posts/add")
+    @PostMapping({"/posts/add", "/posts/new"})
     public String addPost(@Valid @ModelAttribute("post") PostController.PostDTO post,
-                          @ModelAttribute("state")  PostViewState postViewState,
-                          BindingResult result) {
+                          BindingResult result,
+                          @ModelAttribute("viewStatus") final PostViewState postViewState,
+                          @ModelAttribute("vwerrors") final ErrorsViewModel vwerrors) {
         if (result.hasErrors()) {
             postViewState.setDialogOpen(true);
             postViewState.setDialogMode(DialogMode.ADD);
@@ -145,6 +147,7 @@ public class PostController extends ControllerBase {
                 accountRepository.findById(dto.getToAccountId()).map(toId -> {
                     var e =  new PostEntity();
                     e.setId(id);
+                    e.setName(dto.getName());
                     e.setDate(dto.getDate());
                     e.setAmount(dto.getAmount());
                     e.setFromAccount(fromId);

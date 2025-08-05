@@ -37,18 +37,30 @@
                 @if(viewStatus.getDialogMode().equals(PostController.DialogMode.EDIT))
                     !{formAction="/posts/edit/"+editPostId;}
                 @elseif(viewStatus.getDialogMode().equals(PostController.DialogMode.ADD))
-                    !{formAction="/posts/edit/"+editPostId;}
+                    !{formAction="/posts/add";}
                 @else
-                        <%-- should not happen --%>
+                        <%-- the dialog can be opened either via jte viewStatus setting
+                                                      or via javascript modal.js called from a button etc.
+                             in the second case, I asume add action in that case
+                        --%>
+                    !{formAction = "/posts/add";}
                 @endif
                 <form action="${formAction}" method="post">
+                    @if(csrf != null)
+                        <input type="hidden" name="${csrf.getParameterName()}" value="${csrf.getToken()}">
+                    @endif
+                    <label for="name">${localizer.localize("posts.post.name")}</label>
+                    <input type="text" id="name" name="name" value="${post.getName()}"
+                            placeholder='${localizer.localize("posts.post.name")}'/>
+                    @template.fieldErrors(fieldName="name", vwerrors = vwerrors, localizer = localizer)
+
                     <label for="date">${localizer.localize("posts.post.date")}</label>
                     <input type="date" id="date" name="date" value="${formatter.format(post.getDate())}"/>
-                    @template.fieldErrors(fieldName = "date", vwerrors = vwerrors, localizer = localizer)
+                    @template.fieldErrors(fieldName="date", vwerrors = vwerrors, localizer = localizer)
 
                     <fieldset>
                         <legend>${localizer.localize("posts.post.from")}</legend>
-                        <select name="formAccountId" value="${post.getFromAccountId()}" aria-label="Select your from account." required>
+                        <select name="fromAccountId" value="${post.getFromAccountId()}" aria-label="Select your from account." required>
                             <option selected disabled value="">${localizer.localize("posts.dialog.select.account")}</option>
                             @for(var ac:allAccounts)
                                 <option value="${ac.id()}">${ac.name()}</option>
@@ -68,7 +80,7 @@
 
                     <label for="amount">${localizer.localize("posts.dialog.amount")}</label>
                     <input type="number" inputmode="decimal" min="0.01" step="0.01"  id="amount" name="amount" required value="${post.getAmount()}" />
-                    @template.fieldErrors(fieldName = "date", vwerrors = vwerrors, localizer = localizer)
+                    @template.fieldErrors(fieldName="amount", vwerrors = vwerrors, localizer = localizer)
 
                     <footer>
                         <div role="group">

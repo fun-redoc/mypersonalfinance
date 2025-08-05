@@ -53,10 +53,10 @@
             @for(var post:allPosts)
             <tr>
                 <!--        <td th:text="${post.id()}"></td> -->
-                <td>${formatter.format(post.date())}"</td>
-                <td>${post.amount()}"</td>
-                <td>${post.fromAccountName()}"</td>
-                <td>${post.toAccountName()}"</td>
+                <td>${formatter.format(post.date())}</td>
+                <td>${post.amount()}</td>
+                <td>${post.fromAccountName()}</td>
+                <td>${post.toAccountName()}</td>
                 <td>
                     <a href="/posts/edit/${post.id()}" role="link">${localizer.localize("button.text.edit")}</a>
                     <a href="/posts/delete/${post.id()}" role="link" class="secondary">${localizer.localize("button.text.delete")}</a>
