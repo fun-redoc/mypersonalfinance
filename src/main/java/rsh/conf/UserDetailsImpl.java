@@ -13,9 +13,9 @@ import java.util.Collection;
 import java.util.List;
 
 public class UserDetailsImpl implements UserDetails {
-    public static enum ROLES{USER_ROLE, ADMIN_ROLE};
+    public enum ROLES{USER_ROLE, ADMIN_ROLE}
 
-        final UserBaseDto user;
+    final UserBaseDto user;
         public UserDetailsImpl(UserBaseDto user) {
             this.user = user;
         }

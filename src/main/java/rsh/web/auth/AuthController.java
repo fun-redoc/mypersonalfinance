@@ -148,13 +148,13 @@ public class AuthController {
         }
         if(!email.equals(httpSession.getAttribute("email"))) {
             var message = messageSource.getMessage("registration.error.email.tampered", null, locale);
-            System.err.println(String.format("tampered email, given:%s expected:%s",email, httpSession.getAttribute("email")));
+            System.err.printf("tampered email, given:%s expected:%s%n",email, httpSession.getAttribute("email"));
             errors.add(new FieldError("email","email", message));
             return "registration";
         }
         if(!username.equals(httpSession.getAttribute("username"))) {
             var message = messageSource.getMessage("registration.error.username.tampered", null, locale);
-            System.err.println(String.format("tampered username, given:%s expected:%s",username, httpSession.getAttribute("username")));
+            System.err.printf("tampered username, given:%s expected:%s%n",username, httpSession.getAttribute("username"));
             errors.add(new FieldError("username","username", message));
             return "registration";
         }
@@ -235,7 +235,7 @@ public class AuthController {
         try {
             Map<String,Object> assertion = null;
             assertion = objectMapper.readValue(assertionJSONString, Map.class);
-            Map<String, Object> response = (Map)assertion.get("response");;
+            Map<String, Object> response = (Map)assertion.get("response");
             credentialId = (String)assertion.get("id");
         } catch (JsonProcessingException e) {
             System.err.println(e);
@@ -315,7 +315,7 @@ public class AuthController {
 //                authenticationData.getAuthenticatorData().getSignCount()
 //        );
 
-        System.out.println(String.format("Sign Count: credentialId:%s; signCount:%d", authenticationData.getCredentialId(), authenticationData.getAuthenticatorData().getSignCount()));
+        System.out.printf("Sign Count: credentialId:%s; signCount:%d%n", authenticationData.getCredentialId(), authenticationData.getAuthenticatorData().getSignCount());
 
         var user = UserBaseDto.builder()
                 .username(userEntity.getUsername())

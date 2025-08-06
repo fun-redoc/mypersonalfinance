@@ -1,6 +1,9 @@
 @param rsh.conf.JteLocalizer localizer = null
 @param rsh.web.base.ErrorsViewModel vwerrors
 
+@if(localizer == null)
+    !{System.err.println("generalError.jte: localizer is null."); }
+ @endif
 @if(vwerrors.hasNoFieldsMessages())
     <div class="error-message">
         <ul>

@@ -50,7 +50,7 @@ import static org.assertj.core.api.Assertions.*;
 class JpaTests {
 	private static final Logger logger = LoggerFactory.getLogger(JpaTests.class);
 	public static final int NUM_PURCHASES_FOR_WEALTH_1 = 5;
-	private static List<String> ibans = List.of(
+	private static final List<String> ibans = List.of(
 			"DE02120300000000202051",
 			"DE02500105170137075030",
 			"DE02100500000054540402",

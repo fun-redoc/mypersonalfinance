@@ -8,10 +8,10 @@ import rsh.domain.account.AccountEntity;
 import java.util.List;
 
 public interface PostRepository extends JpaRepository<PostEntity, Long> {
-    public List<PostEntity> findPostsByToAccount(AccountEntity accountEntity);
-    public List<PostEntity> findPostsByFromAccount(AccountEntity accountEntity);
-    public Long countPostsByToAccount(AccountEntity accountEntity);
-    public Long countPostsByFromAccount(AccountEntity accountEntity);
+    List<PostEntity> findPostsByToAccount(AccountEntity accountEntity);
+    List<PostEntity> findPostsByFromAccount(AccountEntity accountEntity);
+    Long countPostsByToAccount(AccountEntity accountEntity);
+    Long countPostsByFromAccount(AccountEntity accountEntity);
 
     @Query("""
             select new rsh.domain.account.post.PostDto(
@@ -32,8 +32,8 @@ public interface PostRepository extends JpaRepository<PostEntity, Long> {
             and :uid = u.id
             and p.deposit is null
             """)
-    public List<PostDto> findPostsByToAccountAndDepositIsNull(@Param("uid") String userId,
-                                                @Param("aid") Long accountId);
+    List<PostDto> findPostsByToAccountAndDepositIsNull(@Param("uid") String userId,
+                                                       @Param("aid") Long accountId);
 
     @Query("""
             select new rsh.domain.account.post.PostDto(
@@ -52,5 +52,5 @@ public interface PostRepository extends JpaRepository<PostEntity, Long> {
             where
                 :uid = u.id
             """)
-    public List<PostDto> findPostsByUserId(@Param("uid") String userId);
+    List<PostDto> findPostsByUserId(@Param("uid") String userId);
 }

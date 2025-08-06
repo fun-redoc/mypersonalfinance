@@ -27,7 +27,7 @@
                             aria-label="Close"
                             rel="prev"
                             data-target="modalEditAddDialog"
-                            onclick="toggleModal(event)"
+                            onclick='toggleModal(event);window.location.replace("/posts");'
                     ></button>
                     <h2> ${viewStatus.getDialogMode().equals(PostController.DialogMode.EDIT)?
                              localizer.localize("posts.dialog.edit") : localizer.localize("posts.dialog.new")}
@@ -49,6 +49,10 @@
                     @if(csrf != null)
                         <input type="hidden" name="${csrf.getParameterName()}" value="${csrf.getToken()}">
                     @endif
+                    @if(post.getDepositId() != null)
+                        <%-- pass through the deposit id if available --%>
+                        <input type="hidden" name="depositId" value="${post.getDepositId()}">
+                    @endif
                     <label for="name">${localizer.localize("posts.post.name")}</label>
                     <input type="text" id="name" name="name" value="${post.getName()}"
                             placeholder='${localizer.localize("posts.post.name")}'/>
@@ -63,7 +67,11 @@
                         <select name="fromAccountId" value="${post.getFromAccountId()}" aria-label="Select your from account." required>
                             <option selected disabled value="">${localizer.localize("posts.dialog.select.account")}</option>
                             @for(var ac:allAccounts)
-                                <option value="${ac.id()}">${ac.name()}</option>
+                                @if(ac.id().equals(post.getFromAccountId()))
+                                    <option selected value="${ac.id()}">${ac.name()}</option>
+                                @else
+                                    <option value="${ac.id()}">${ac.name()}</option>
+                                @endif
                             @endfor
                         </select>
                     </fieldset>
@@ -73,7 +81,11 @@
                         <select name="toAccountId" value="${post.getToAccountId()}" aria-label="Select your to account." required>
                             <option selected disabled value="">${localizer.localize("posts.dialog.select.account")}</option>
                             @for(var ac:allAccounts)
-                                <option value="${ac.id()}">${ac.name()}</option>
+                                @if(ac.id().equals(post.getToAccountId()))
+                                    <option selected value="${ac.id()}">${ac.name()}</option>
+                                @else
+                                    <option value="${ac.id()}">${ac.name()}</option>
+                                @endif
                             @endfor
                         </select>
                     </fieldset>
@@ -82,13 +94,16 @@
                     <input type="number" inputmode="decimal" min="0.01" step="0.01"  id="amount" name="amount" required value="${post.getAmount()}" />
                     @template.fieldErrors(fieldName="amount", vwerrors = vwerrors, localizer = localizer)
 
+                    <%--
+                        onclick='(event)->{toggleModal(event); /* window.location.replace("/posts");*/ }'>
+                        --%>
                     <footer>
                         <div role="group">
                             <button role="button"
                                     class="secondary"
                                     data-target="modalEditAddDialog"
-                                    onclick="toggleModal(event)"
-                                    >${localizer.localize("button.text.cancel")}
+                                    onclick='toggleModal(event);window.location.replace("/posts");'>
+                                    ${localizer.localize("button.text.cancel")}
                             </button>
                             <button autofocus type="submit"
                                     role="button"

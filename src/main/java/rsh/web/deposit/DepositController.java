@@ -31,7 +31,8 @@ public class DepositController extends ControllerBase {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class DepositPageStatus {
-        public enum DialogMode{EDIT, NEW, CLOSED};
+        public enum DialogMode{EDIT, NEW, CLOSED}
+
         boolean showOnlyCurrent;
         boolean onlyCheck;
         boolean hideActions;
@@ -303,7 +304,7 @@ public class DepositController extends ControllerBase {
         if(maybeDepositEntity.isPresent()) {
             var depositEntity = depositRepository.save(maybeDepositEntity.get());
             if(depositEntity == null) {
-                System.err.println(String.format("Saving of deposit failed for user id %s, repository save returned with null value", getUser().getId() ));
+                System.err.printf("Saving of deposit failed for user id %s, repository save returned with null value%n", getUser().getId() );
                 vwerrors.getMessages().add("deposits.save.failed");
                 viewStatus.setDialogMode(DepositPageStatus.DialogMode.NEW);
                 viewStatus.setDialogOpen(true);
@@ -312,7 +313,7 @@ public class DepositController extends ControllerBase {
                 return "redirect:/deposits";
             }
         } else {
-            System.err.println(String.format("Saving of deposit failed for user id %s, deposit entity object is empty", getUser().getId() ));
+            System.err.printf("Saving of deposit failed for user id %s, deposit entity object is empty%n", getUser().getId() );
             vwerrors.getMessages().add("deposits.save.failed");
             viewStatus.setDialogMode(DepositPageStatus.DialogMode.NEW);
             viewStatus.setDialogOpen(true);
@@ -329,7 +330,7 @@ public class DepositController extends ControllerBase {
                              @ModelAttribute("vwerrors")   final ErrorsViewModel vwerrors
     ) {
         if(id==null) {
-            System.err.println(String.format("Deleting of deposit failed for user id %s, parameter id has null value", getUser().getId() ));
+            System.err.printf("Deleting of deposit failed for user id %s, parameter id has null value%n", getUser().getId() );
             vwerrors.getMessages().add("deposits.delete.failed");
             viewStatus.setDialogMode(DepositPageStatus.DialogMode.CLOSED);
             viewStatus.setDialogOpen(false);
@@ -338,7 +339,7 @@ public class DepositController extends ControllerBase {
         // delete deposits and all assignments, eg. in deposits_tags table, deposit_posts etc.
         var maybeDepositEntity = depositRepository.findById(id);
         if(maybeDepositEntity.isEmpty()) {
-            System.err.println(String.format("Deleting of deposit failed for user id %s, no deposit for id %d available", getUser().getId(), id ));
+            System.err.printf("Deleting of deposit failed for user id %s, no deposit for id %d available%n", getUser().getId(), id );
             vwerrors.getMessages().add("deposits.delete.failed");
             viewStatus.setDialogMode(DepositPageStatus.DialogMode.CLOSED);
             viewStatus.setDialogOpen(false);

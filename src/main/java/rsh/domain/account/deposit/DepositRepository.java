@@ -32,12 +32,12 @@ public interface DepositRepository extends JpaRepository<DepositEntity, Long> {
         String name;
     }
 
-    public Long countDepositsByAccount(AccountEntity accountEntity);
+    Long countDepositsByAccount(AccountEntity accountEntity);
 
     @Query("""
             select d from DepositEntity d where :t in elements(d.tags)
             """)
-    public List<DepositEntity> findByTag(@Param("t") TagEntity tagEntity);
+    List<DepositEntity> findByTag(@Param("t") TagEntity tagEntity);
 
     @Query("""
             select sum(p.amount)
@@ -45,7 +45,7 @@ public interface DepositRepository extends JpaRepository<DepositEntity, Long> {
               inner join DepositEntity d on d = p.deposit
               where d = :d
             """)
-    public Optional<BigDecimal> totalAmountOf(@Param("d") DepositEntity depositEntity);
+    Optional<BigDecimal> totalAmountOf(@Param("d") DepositEntity depositEntity);
 
 
     //@Query("""
@@ -83,12 +83,12 @@ public interface DepositRepository extends JpaRepository<DepositEntity, Long> {
                 inner join OwnerEntity o on o = d.belongsTo
             where :u in elements(o.users)
             """)
-    public List<DepositListDto> findDepositsForUser(@Param("u")UserEntity userEntity);
+    List<DepositListDto> findDepositsForUser(@Param("u") UserEntity userEntity);
 
     @Query("""
             select new rsh.domain.account.deposit.DepositRepository$TagDto(t.id, t.name)
             from TagEntity t
             inner join DepositEntity d on d.id = :did
             """)
-    public List<TagDto> getTagsByDepositId(@Param("did") Long depositId);
+    List<TagDto> getTagsByDepositId(@Param("did") Long depositId);
 }

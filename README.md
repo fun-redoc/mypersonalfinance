@@ -8,12 +8,17 @@ Login via passkey.
 No passwords should be stored.
 
 ### IN PROGRESS
++ savings/deposits edit
 
 ### DONE
 + register for passkey login with e-mail verification
-+ create accounts
++ passkey login
++ base data model with accounts, deposits, postings, interest rates, owners/groups
++ mode, jpa tests
++ devel mode: relaxed security settings, command runner for data initialization
++ accounts add view
 + user who can manage the account
-+ manage groups
++ manage owners/groups
 + edit account
 + delete account
 + savings/deposits list
@@ -23,11 +28,12 @@ No passwords should be stored.
 + posts list
 + give post a name
 + posts add
++ posts delete
++ allow adding new posts iff the user is in owners of from and to accounts
++ posts edit
   
 ### TODO
-+ posts delete
-+ posts edit
-+ savings/deposits edit
++ check if permission for adding, deleting and editing of posts, deposits, interests, owners is correct (matches the ownershaft of the respective accounts)
 + posts add: account selection put icome and spending accounts on top of the list
 + sort/filter posts
 + sort/filter accounts

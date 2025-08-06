@@ -91,7 +91,7 @@ public class SettingsController extends ControllerBase {
             this.userIds = new ArrayList<>();
             this.oid = null;
         }
-    };
+    }
 
     @GetMapping
     public String getSettings(

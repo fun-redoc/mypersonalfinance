@@ -20,16 +20,16 @@ public class MySecurityFilter extends OncePerRequestFilter {
                                     FilterChain filterChain)
                    throws ServletException, IOException
     {
-        System.out.println(String.format("ENTERING HELLO IN MY SECURITY FILTER: %s %s",
-                            request.getServletPath(), request.getMethod()));
+        System.out.printf("ENTERING HELLO IN MY SECURITY FILTER: %s %s%n",
+                            request.getServletPath(), request.getMethod());
         filterChain.doFilter(request,response);
         var securityContext = SecurityContextHolder.getContext();
-        System.out.println(String.format("LEAVING HELLO IN MY SECURITY FILTER: %s %s %s",
-                request.getServletPath(), request.getMethod(), securityContext.getAuthentication().getName()));
+        System.out.printf("LEAVING HELLO IN MY SECURITY FILTER: %s %s %s%n",
+                request.getServletPath(), request.getMethod(), securityContext.getAuthentication().getName());
         if(securityContext.getAuthentication().isAuthenticated() && securityContext.getAuthentication().getPrincipal() != null) {
             var principal = securityContext.getAuthentication().getPrincipal();
             var pincipal2 = request.getUserPrincipal();
-            System.out.println(String.format("LEAVING HELLO IN MY SECURITY FILTER: prinicpal set to %s %s", principal, pincipal2));
+            System.out.printf("LEAVING HELLO IN MY SECURITY FILTER: prinicpal set to %s %s%n", principal, pincipal2);
 
         }
 

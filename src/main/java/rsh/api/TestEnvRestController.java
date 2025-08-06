@@ -102,7 +102,6 @@ public class TestEnvRestController {
                                 .build();
                         postRepository.save(post);
                 });
-                ;
         }
 
         private UserEntity generateUser(String name) {

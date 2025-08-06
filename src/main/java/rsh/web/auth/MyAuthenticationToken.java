@@ -11,7 +11,7 @@ public final class MyAuthenticationToken extends AbstractAuthenticationToken {
     //public  record Details(String email, String id){};
     private final UserBaseDto user;
     //private Details details;
-    private UserDetails details;
+    private final UserDetails details;
     public MyAuthenticationToken(UserBaseDto user,
                                  UserDetails details,
                                  Collection<? extends GrantedAuthority> authorities) {

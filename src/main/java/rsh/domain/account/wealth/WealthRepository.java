@@ -14,7 +14,7 @@ public interface WealthRepository extends JpaRepository<WealthEntity, Long> {
             select p from PurchaseEntity p
             where p.wealthEntity = :w
             """)
-    public List<PurchaseEntity> allPurchasesForWealth(@Param("w") WealthEntity wealthEntity);
+    List<PurchaseEntity> allPurchasesForWealth(@Param("w") WealthEntity wealthEntity);
 
 
     @Query("""
@@ -22,5 +22,5 @@ public interface WealthRepository extends JpaRepository<WealthEntity, Long> {
             from PurchaseEntity
             where wealthEntity = :w
             """)
-    public Optional<BigDecimal> wealthCostOfPurchase(@Param("w") WealthEntity wealthEntity);
+    Optional<BigDecimal> wealthCostOfPurchase(@Param("w") WealthEntity wealthEntity);
 }

@@ -22,12 +22,11 @@
 
 !{var pageContent = @`
 
-    @template.generalErrors(vwerrors = vwerrors)
+@template.posts_new(csrf = csrf, localizer = localizer, formatter = formatter, viewStatus = viewStatus, editPostId = editPostId, allPosts = allPosts, allAccounts = allAccounts, post = post, vwerrors = vwerrors)
+@template.generalErrors(localizer = localizer, vwerrors = vwerrors)
 
-    @template.posts_new(csrf = csrf, localizer = localizer, formatter = formatter, viewStatus = viewStatus, editPostId = editPostId, allPosts = allPosts, allAccounts = allAccounts, post = post, vwerrors = vwerrors)
 
     <!--symotion-f) List of Accounts -->
-    <section>
         <div role="group">
             <h2>${localizer.localize("posts.my_posts")}</h2>
 
@@ -66,7 +65,6 @@
             </tbody>
         </table>
         @endif
-    </section>
 `;}
 
 @template.layout(

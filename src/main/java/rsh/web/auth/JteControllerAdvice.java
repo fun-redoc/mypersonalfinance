@@ -16,7 +16,8 @@ import java.util.ArrayList;
 
 @ControllerAdvice
 public class JteControllerAdvice {
-    public enum MenuItem{HOME, WEALTH, DEPOSITS, POSTS, ACOOUNTS, SETTINGS, LOGOUT};
+    public enum MenuItem{HOME, WEALTH, DEPOSITS, POSTS, ACOOUNTS, SETTINGS, LOGOUT}
+
     @ModelAttribute
     public void currentMenu(Model model, MenuItem menuItem) { model.addAttribute("currentMenu", menuItem);}
 
