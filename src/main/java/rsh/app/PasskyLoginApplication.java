@@ -226,7 +226,7 @@ public class PasskyLoginApplication {
 									.due(endDate.getTime())
 									.belongsTo(ownerRepository.findOwnerByName("group1").orElseThrow())
 									.name("test deposit2 with flat interest of 2.5% over 2 years")
-									.account(account)
+									.account(account1)
 									.posts(new ArrayList<>())
 									.tags(new HashSet<TagEntity>())
 									.build().addTag(tag2).addTag(tag3).addPost(post3));
