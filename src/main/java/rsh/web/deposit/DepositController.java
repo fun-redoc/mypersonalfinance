@@ -1,6 +1,7 @@
 package rsh.web.deposit;
 
 import jakarta.validation.Valid;
+import jakarta.websocket.server.PathParam;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -21,6 +22,7 @@ import rsh.user.UserEntity;
 import rsh.web.base.ErrorsViewModel;
 import rsh.web.account.ControllerBase;
 
+import java.math.BigDecimal;
 import java.util.*;
         import java.util.stream.Collectors;
 
@@ -148,9 +150,82 @@ public class DepositController extends ControllerBase {
         return "deposits";
     }
 
-    @RequestMapping(value = {"/deposits/add", "/deposits/new"}, params = {"action"})
+    @GetMapping("/deposits/edit/{id}")
+    public String getEditDeposit(@PathVariable("id") final Long editId,
+                                 @ModelAttribute("deposit") final DepositDto depositDto,
+                                 @ModelAttribute("viewStatus") final DepositPageStatus viewStatus,
+                                 @ModelAttribute("vwerrors") final ErrorsViewModel vwerrors) {
+        if(editId == null) {
+            System.err.println("/deposits/edit called with id set to null");
+            vwerrors.getMessages().add("errors.message.generic");
+            viewStatus.setDialogMode(DepositPageStatus.DialogMode.CLOSED);
+            viewStatus.setDialogOpen(false);
+            return "deposits";
+        }
+
+        return depositRepository.findById(editId)
+        .flatMap(depositEntity -> {
+            if(depositEntity
+                    .getBelongsTo().getUsers().stream()
+                    .map(UserEntity::getId)
+                    .noneMatch(uid -> uid.equals(getUser().getId()))) {
+                System.err.println("/deposits/edit called with id set to null");
+                vwerrors.getMessages().add("errors.message.generic");
+                viewStatus.setDialogMode(DepositPageStatus.DialogMode.CLOSED);
+                viewStatus.setDialogOpen(false);
+                return Optional.empty();
+            } else {
+                return Optional.of(depositEntity);
+            }
+        })
+        .map( depositEntity -> {
+            depositDto.setId(depositEntity.getId());
+            depositDto.setName(depositEntity.getName());
+            depositDto.setTags(depositEntity.getTags().stream().map(t-> new DepositRepository.TagDto(t.getId(), t.getName())).toList());
+            depositDto.setAccountId(depositEntity.getAccount().getId());
+            depositDto.setAssignedPostings(depositEntity.getPosts().stream()
+                                            .map(p->DepositPostingDto.builder()
+                                                                .id(p.getId())
+                                                                .date(p.getDate())
+                                                                .amount(p.getAmount())
+                                                            .build()).toList());
+            depositDto.setFreePostings(new ArrayList<>(getFreePostingsFromDb(depositEntity.getAccount().getId())));
+            depositDto.setBank(depositEntity.getAccount().getBank());
+            depositDto.setBegin(depositEntity.getBegin());
+            depositDto.setFinish(depositEntity.getDue());
+            depositDto.setInterestType(depositEntity.getInterest().interestType());
+            switch (depositDto.getInterestType()) {
+                case ZERO: {
+                    depositDto.setEffectiveInterest(BigDecimal.ZERO);
+                };break;
+                case FLAT: {
+                    depositDto.setFlatInterest((FlatInterestEntity) depositEntity.getInterest());
+                    depositDto.setEffectiveInterest(depositEntity.getInterest().effectiveInterestPa());
+                };break;
+                case FLAT_END_BONUS: {
+                    depositDto.setBonusInterest((FlatPlusBonusAtEndInterestEntity) depositEntity.getInterest());
+                    depositDto.setEffectiveInterest(depositEntity.getInterest().effectiveInterestPa());
+                };break;
+                default:{
+                    throw new RuntimeException("Unexpected Interest Type");
+                }
+            }
+            viewStatus.setDialogMode(DepositPageStatus.DialogMode.EDIT);
+            viewStatus.setDialogOpen(true);
+            return "deposits";
+        }).orElseGet(()->{
+            System.err.println(String.format("no entity found for id %d", editId));
+            vwerrors.getMessages().add("errors.message.generic");
+            viewStatus.setDialogMode(DepositPageStatus.DialogMode.CLOSED);
+            viewStatus.setDialogOpen(false);
+            return "deposits";
+        });
+    }
+
+    @RequestMapping(value = {"/deposits/add", "/deposits/new", "/deposits/edit/{editId}"}, params = {"action"})
     public String actionHandler( @RequestParam (name = "action", required = true) final String action,
                                  @RequestParam (name = "id", required = false) final Long id,
+                                 @PathVariable(value = "editId",required = false) final Long editId,
                                  @ModelAttribute("viewStatus") DepositPageStatus depositPageStatus,
                                  @ModelAttribute("vwerrors")   final ErrorsViewModel vwerrors,
                                  @Valid @ModelAttribute("deposit") final DepositDto depositDto,
@@ -161,11 +236,16 @@ public class DepositController extends ControllerBase {
         if(depositDto.getAccountId() != null) {
             //
         }
+        var dialogMode = DepositPageStatus.DialogMode.NEW;
+        if(editId != null) {
+            dialogMode = DepositPageStatus.DialogMode.EDIT;
+            depositDto.setId(editId);
+        }
         switch(action) {
             case "account":
                 depositDto.setFreePostings(new ArrayList<>(getFreePostingsFromDb(depositDto.getAccountId())));
                 depositDto.setAssignedPostings(new ArrayList<>());
-                depositPageStatus.setDialogMode(DepositPageStatus.DialogMode.NEW);
+                depositPageStatus.setDialogMode(dialogMode);
                 depositPageStatus.setDialogOpen(true);
                 break;
             case "interest_type":
@@ -180,12 +260,12 @@ public class DepositController extends ControllerBase {
                     }
                 }
                 adjustAssignedAndFreePostings(depositDto);
-                depositPageStatus.setDialogMode(DepositPageStatus.DialogMode.NEW);
+                depositPageStatus.setDialogMode(dialogMode);
                 depositPageStatus.setDialogOpen(true);
                 break;
             case "add_posting":
                 adjustAssignedAndFreePostings(depositDto);
-                depositPageStatus.setDialogMode(DepositPageStatus.DialogMode.NEW);
+                depositPageStatus.setDialogMode(dialogMode);
                 depositPageStatus.setDialogOpen(true);
                 break;
             case "remove_posting":
@@ -219,7 +299,7 @@ public class DepositController extends ControllerBase {
                         filterIds);
                 depositDto.setFreePostings(filteredFreePostings);
 
-                depositPageStatus.setDialogMode(DepositPageStatus.DialogMode.NEW);
+                depositPageStatus.setDialogMode(dialogMode);
                 depositPageStatus.setDialogOpen(true);
                 break;
             default:throw new RuntimeException("unknown action");
@@ -353,6 +433,48 @@ public class DepositController extends ControllerBase {
         }).orElse("deposits");
     }
 
+    @PostMapping("/deposits/edit/{editId}")
+    @Transactional
+    @Modifying
+    public String postEditDeposit(@PathVariable("editId") final Long editId,
+                                  @Valid @ModelAttribute("deposit") final DepositDto depositDto,
+                                  BindingResult result,
+                                  @ModelAttribute("viewStatus") final DepositPageStatus viewStatus,
+                                  @ModelAttribute("vwerrors") final ErrorsViewModel vwerrors) {
+        if(editId == null) {
+            System.err.println("editId cannot be null.");
+            viewStatus.setDialogOpen(true);
+            viewStatus.setDialogMode(DepositPageStatus.DialogMode.EDIT);
+            vwerrors.getMessages().add("errors.message.generic");
+            return "deposits";
+        }
+        return depositDtoToEntity(editId, depositDto)
+                .flatMap(depositEntity -> {
+                    if(depositEntity.getBelongsTo()
+                            .getUsers().stream()
+                            .map(UserEntity::getId)
+                            .noneMatch(uid->uid.equals(getUser().getId()))){
+                        System.err.println(String.format("editId %d doesn't belong to user %s is no entity.",editId, getUser().getId()));
+                        return Optional.empty();
+                    } else {
+                        return Optional.of(depositEntity);
+                    }
+                })
+                .map(depositEntity -> {
+                    depositRepository.save(depositEntity);
+                    viewStatus.setDialogOpen(false);
+                    viewStatus.setDialogMode(DepositPageStatus.DialogMode.CLOSED);
+                  return "redirect:/deposits";
+                }).orElseGet(()-> {
+                    System.err.println(String.format("editId %d is no entity.",editId));
+                    viewStatus.setDialogOpen(true);
+                    viewStatus.setDialogMode(DepositPageStatus.DialogMode.EDIT);
+                    vwerrors.getMessages().add("errors.message.generic");
+                    return "deposits";
+                });
+
+    }
+
     private List<DepositPostingDto> getFreePostingsFromDb(Long accountId) {
         return postRepository
                 .findPostsByToAccountAndDepositIsNull(getUser().getId(), accountId)
@@ -380,5 +502,63 @@ public class DepositController extends ControllerBase {
             }
         }
         return res;
+    }
+
+    private Optional<DepositEntity> depositDtoToEntity(final Long depositId, final DepositDto depositDto) {
+        if(depositDto == null || depositId == null && depositDto.getId() == null) {
+            System.err.println("cannot determin id for DepositEntity.");
+            return Optional.empty();
+        }
+        var entityId = depositId == null ? depositDto.getId() : depositId;
+        return depositRepository.findById(entityId)
+                .flatMap(depositEntity -> {
+                    if(!depositEntity.getAccount().getId().equals(depositDto.getAccountId())) {
+                        return accountRepository.findById(depositDto.getAccountId())
+                                .map(accountEntity -> {
+                                    depositEntity.setAccount(accountEntity);
+                                    return depositEntity;
+                                });
+                    } else {
+                        return Optional.of(depositEntity);
+                    }
+                })
+                .flatMap(depositEntity-> {
+                    var interest = switch (depositDto.getInterestType()) {
+                        case ZERO -> new InterestEntity();
+                        case FLAT -> new FlatInterestEntity(depositDto.getBegin(), depositDto.getFinish(), depositDto.getFlatInterest().getAnnualRate());
+                        case FLAT_END_BONUS -> new FlatPlusBonusAtEndInterestEntity(depositDto.getBegin(), depositDto.getFinish(), depositDto.getBonusInterest().getAnnualRate(), depositDto.getBonusInterest().getFinalBonusRate());
+                        default -> throw new RuntimeException("unexpected.");
+                    };
+                    if(!depositEntity.getInterest().sameAs(interest)) {
+                        depositEntity.setInterest(interest);
+                    }
+                    if(!depositEntity.getName().equals(depositDto.getName())) {
+                        depositEntity.setName(depositDto.getName());
+                    }
+                    if(!depositEntity.getBegin().equals(depositDto.getBegin())) {
+                        depositEntity.setBegin(depositDto.getBegin());
+                    }
+                    if(!depositEntity.getDue().equals(depositDto.getFinish())) {
+                        depositEntity.setDue(depositDto.getFinish());
+                    }
+                    depositEntity.setPosts(
+                            postRepository.findAllById(
+                                        depositDto.getAssignedPostings().stream()
+                                        .map(dto -> {
+                                            return dto.getId();
+                                        }).collect(Collectors.toUnmodifiableList())
+                            ).stream().collect(Collectors.toSet()));
+
+                    depositEntity.setTags(depositDto.getTags().stream().map(t -> {
+                        return TagEntity.builder()
+                                .name(t.getName())
+                                .id(t.getId())
+                                .build();
+                    }).collect(Collectors.toSet()));
+                    return Optional.of(depositEntity);
+                }).or(() ->{
+                  System.err.println(String.format("DepositEntity not found for id: %d", entityId));
+                  return Optional.empty();
+                });
     }
 }

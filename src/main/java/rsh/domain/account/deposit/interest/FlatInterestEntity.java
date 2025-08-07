@@ -50,4 +50,19 @@ public class FlatInterestEntity extends InterestEntity {
         return InterestType.FLAT;
     }
 
+    @Override
+    public boolean sameAs(InterestEntity other) {
+        // compares every parameter but id
+        if(other.getClass() != FlatInterestEntity.class) {
+            return false;
+        }
+        var flatInterestOther = (FlatInterestEntity) other;
+        return interestType() == other.interestType() &&
+                begin.equals(flatInterestOther.begin) &&
+                finish.equals(flatInterestOther.finish) &&
+                annualRate.compareTo(flatInterestOther.annualRate) == 0;
+
+
+    }
+
 }

@@ -8,7 +8,7 @@ Login via passkey.
 No passwords should be stored.
 
 ### IN PROGRESS
-+ savings/deposits edit
++ BUG: Deposit Edit: after removing a posting from deposit, it is imposible to add it anew.
 
 ### DONE
 + register for passkey login with e-mail verification
@@ -31,8 +31,10 @@ No passwords should be stored.
 + posts delete
 + allow adding new posts iff the user is in owners of from and to accounts
 + posts edit
++ savings/deposits edit
   
 ### TODO
++ TagsEntity make already available Tags reusable, currently every new or edited tag is stored
 + check if permission for adding, deleting and editing of posts, deposits, interests, owners is correct (matches the ownershaft of the respective accounts)
 + posts add: account selection put icome and spending accounts on top of the list
 + sort/filter posts

@@ -18,7 +18,7 @@
 @param List<DepositListDto> allDeposits
 @param List<DepositRepository.AccountListDTO> allAccounts
 @param List<InterestEntity.InterestType> allInterestTypes
-@param DepositDto deposit = null
+@param DepositDto deposit
 @param DepositController.DepositPageStatus viewStatus
 @param ErrorsViewModel vwerrors
 
@@ -96,9 +96,9 @@
                         </td>
                         @if(!viewStatus.isHideActions())
                         <td>
-                            <%-- <a th:href="@{/deposits/edit/{id}(id=${deposit.id})}" role="button" th:text="#{button.text.edit}">Edit</a> --%>
+                            <a href="/deposits/edit/${deposit.getId()}" role="link">${localizer.localize("button.text.edit")}</a>
                             <a href="/deposits/delete/${deposit.getId()}"
-                               role="button"
+                               role="link"
                                class="secondary">
                                ${localizer.localize("button.text.delete")}
                             </a>

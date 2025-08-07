@@ -52,4 +52,20 @@ public class FlatPlusBonusAtEndInterestEntity extends InterestEntity {
     public InterestType interestType() {
         return InterestType.FLAT_END_BONUS;
     }
+
+    @Override
+    public boolean sameAs(InterestEntity other) {
+        // compares every parameter but id
+        if(other.getClass() != FlatPlusBonusAtEndInterestEntity.class) {
+            return false;
+        }
+        var castOther = (FlatPlusBonusAtEndInterestEntity) other;
+        return interestType() == other.interestType() &&
+                begin.equals(castOther.begin) &&
+                finish.equals(castOther.finish) &&
+                annualRate.compareTo(castOther.annualRate) == 0 &&
+                finalBonusRate.compareTo(castOther.finalBonusRate) == 0;
+
+
+    }
 }

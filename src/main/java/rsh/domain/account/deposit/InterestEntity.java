@@ -37,4 +37,10 @@ public class InterestEntity {
     public InterestType interestType() {
         return InterestType.ZERO;
     }
+
+    public boolean sameAs(InterestEntity other) {
+        // compares every parameter but id
+        return interestType() == other.interestType();
+
+    }
 }
