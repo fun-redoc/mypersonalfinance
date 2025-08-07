@@ -320,6 +320,10 @@ public class PostController extends ControllerBase {
         postDTO.setFromAccountId(entity.getFromAccount().getId());
         postDTO.setToAccountId(entity.getToAccount().getId());
         postDTO.setAmount(entity.getAmount());
-        postDTO.setDepositId(entity.getDeposit().getId());
+        if(entity.getDeposit() != null) {
+            postDTO.setDepositId(entity.getDeposit().getId());
+        } else {
+            postDTO.setDepositId(null);
+        }
     }
 }

@@ -213,8 +213,8 @@ public class PasskyLoginApplication {
 									.due(endDate1.getTime())
 									.belongsTo(ownerRepository.findOwnerByName("group1").orElseThrow())
 									.name("test deposit with flat interest of 2.5% over 2 years")
-									.account(account0)
-									.posts(new HashSet<PostEntity>())
+									.account(account1)
+									.posts(new ArrayList<>())
 									.tags(new HashSet<TagEntity>())
 									.build().addTag(tag1).addTag(tag2).addPost(post1).addPost(post2));
 			//assertThat(deposit1).isNotNull().hasFieldOrPropertyWithValue("id", 1L);
@@ -226,8 +226,8 @@ public class PasskyLoginApplication {
 									.due(endDate.getTime())
 									.belongsTo(ownerRepository.findOwnerByName("group1").orElseThrow())
 									.name("test deposit2 with flat interest of 2.5% over 2 years")
-									.account(account0)
-									.posts(new HashSet<>())
+									.account(account)
+									.posts(new ArrayList<>())
 									.tags(new HashSet<TagEntity>())
 									.build().addTag(tag2).addTag(tag3).addPost(post3));
 			//assertThat(deposit1).isNotNull().hasFieldOrPropertyWithValue("id", 1L);

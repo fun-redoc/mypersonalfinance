@@ -49,7 +49,7 @@ public class PostEntity {
     @Column(name="amount", nullable = false, precision = 13, scale = 2)
     private BigDecimal amount;
 
-    @ManyToOne
-    @JoinColumn(name = "deposit_id")
+    @ManyToOne(fetch = FetchType.LAZY)
+    //@JoinColumn(name = "deposit_id")
     private DepositEntity deposit; // some post will belong to deposits (but not all)
 }

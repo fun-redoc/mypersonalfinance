@@ -298,6 +298,7 @@ public class DepositController extends ControllerBase {
                 var filteredFreePostings= filterFreePostings(depositDto.getAccountId(),
                         filterIds);
                 depositDto.setFreePostings(filteredFreePostings);
+                depositDto.getFreePostings().add(postingToDelete);
 
                 depositPageStatus.setDialogMode(dialogMode);
                 depositPageStatus.setDialogOpen(true);
@@ -370,7 +371,7 @@ public class DepositController extends ControllerBase {
                                 p.ifPresent(p_->p_.setDeposit(depositEntity));
                                 return p.orElseThrow();
                             })
-                            .collect(Collectors.toSet()));
+                            .collect(Collectors.toUnmodifiableList()));
 
                     depositEntity.setTags(depositDto.getTags().stream().map(t -> {
                         return TagEntity.builder()
@@ -541,14 +542,30 @@ public class DepositController extends ControllerBase {
                     if(!depositEntity.getDue().equals(depositDto.getFinish())) {
                         depositEntity.setDue(depositDto.getFinish());
                     }
-                    depositEntity.setPosts(
-                            postRepository.findAllById(
-                                        depositDto.getAssignedPostings().stream()
-                                        .map(dto -> {
-                                            return dto.getId();
-                                        }).collect(Collectors.toUnmodifiableList())
-                            ).stream().collect(Collectors.toSet()));
+                    var allOldPosts = depositEntity.getPosts();
+                    var deletedPosts = allOldPosts.stream().filter(postEntity -> {
+                        return depositDto.getAssignedPostings().stream()
+                                .map(DepositPostingDto::getId)
+                                .noneMatch(pid->postEntity.getId().compareTo(pid) == 0);
+                    });
+                    var addedPostIds = depositDto.getAssignedPostings().stream()
+                            .map(DepositPostingDto::getId)
+                            .filter(pid -> allOldPosts.stream().noneMatch(p->p.getId().compareTo(pid) == 0))
+                            .toList();
+                    deletedPosts.forEach(p -> {
+                       depositEntity.removePost(p);
+                    });
+                    postRepository.findAllById(
+                                depositDto.getAssignedPostings().stream()
+                                .map(dto -> {
+                                    return dto.getId();
+                                }).collect(Collectors.toUnmodifiableList())
+                    ).forEach(p -> {
+                       depositEntity.addPost(p);
+                    });
 
+                    // TODO updating tags this way will leave behind lots of trash
+                    //      see posts and proceed analogously
                     depositEntity.setTags(depositDto.getTags().stream().map(t -> {
                         return TagEntity.builder()
                                 .name(t.getName())

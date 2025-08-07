@@ -45,9 +45,9 @@ public class DepositEntity {
     @ManyToOne(cascade = CascadeType.ALL)
     private InterestEntity interest;
 
-    //@OneToMany(mappedBy = "deposit",  fetch = FetchType.LAZY)
-    @OneToMany(fetch = FetchType.LAZY)
-    private Set<PostEntity> posts;
+    @OneToMany(mappedBy = "deposit",  fetch = FetchType.LAZY, cascade = CascadeType.DETACH)
+    //@OneToMany(fetch = FetchType.LAZY)
+    private List<PostEntity> posts;
 
     @ManyToMany(fetch = FetchType.LAZY, cascade = { CascadeType.ALL })
     @JoinTable(
@@ -75,6 +75,9 @@ public class DepositEntity {
     }
 
     public DepositEntity addPost(PostEntity post) {
+        if(this.getAccount().getId() != post.getToAccount().getId()) {
+            throw new IllegalStateException(String.format("the to-account of the post (%d) should match the deposit account (%d)", post.getToAccount().getId(), this.getAccount().getId()));
+        }
         var success = posts.add(post);
         if(success) post.setDeposit(this);
         return this;
