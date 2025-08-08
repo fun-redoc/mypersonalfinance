@@ -8,6 +8,7 @@ import rsh.domain.owner.OwnerEntity;
 import rsh.domain.account.post.PostEntity;
 
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -49,7 +50,8 @@ public class DepositEntity {
     //@OneToMany(fetch = FetchType.LAZY)
     private List<PostEntity> posts;
 
-    @ManyToMany(fetch = FetchType.LAZY, cascade = { CascadeType.ALL })
+    //@ManyToMany(fetch = FetchType.LAZY, cascade = { CascadeType.ALL })
+    @ManyToMany(fetch = FetchType.LAZY, cascade = {CascadeType.DETACH})
     @JoinTable(
             name = "deposit_tags",
             joinColumns = @JoinColumn(name = "deposit_id"),
@@ -63,6 +65,7 @@ public class DepositEntity {
     private Set<TagEntity> tags;// = new HashSet<>();
 
     public DepositEntity addTag(TagEntity tag) {
+        if(tags == null) setTags(new HashSet<>());
         var success = tags.add(tag);
         if(success) tag.getDeposits().add(this);
         return this;

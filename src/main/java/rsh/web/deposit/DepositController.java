@@ -372,13 +372,12 @@ public class DepositController extends ControllerBase {
                                 return p.orElseThrow();
                             })
                             .collect(Collectors.toUnmodifiableList()));
-
-                    depositEntity.setTags(depositDto.getTags().stream().map(t -> {
-                        return TagEntity.builder()
-                                .name(t.getName())
-                                .id(t.getId())
-                                .build();
-                    }).collect(Collectors.toSet()));
+                    //depositEntity.setTags(depositDto.getTags().stream().map(t -> {
+                    //    return TagEntity.builder()
+                    //            .name(t.getName())
+                    //            .id(t.getId())
+                    //            .build();
+                    //}).collect(Collectors.toSet()));
                     return depositEntity;
                 });
 
@@ -391,6 +390,40 @@ public class DepositController extends ControllerBase {
                 viewStatus.setDialogOpen(true);
                 return "deposits";
             } else {
+                // add Tags here because i need depositEntity to be managed
+                // first collect tags already available
+                if(depositDto.getTags() != null && !depositDto.getTags().isEmpty()) {
+                    var ownersTags = tagRepository.findAllByBelongsTo(depositEntity.getBelongsTo());
+
+                    var addedOwnersTags = ownersTags.stream().filter(t ->
+                            depositDto.getTags().stream()
+                                    .map(DepositRepository.TagDto::getName)
+                                    .anyMatch(tagName -> tagName.equals(t.getName()))
+                    )
+                    .map(tagEntity -> {
+                        depositEntity.addTag(tagEntity);
+                        return tagEntity;
+                    }).toList();
+                    var persistedAddedOwnerTags = tagRepository.saveAll(addedOwnersTags);
+                    // second add new tags
+                    var newTags = depositDto.getTags().stream().filter(tagDto ->
+                            ownersTags.stream()
+                                    .map(TagEntity::getName)
+                                    .noneMatch(tagDto.getName()::equals)
+                    ).map(tagDto ->
+                            TagEntity.builder()
+                                    .belongsTo(depositEntity.getBelongsTo())
+                                    .name(tagDto.getName())
+                                    .id(tagDto.getId())
+                                    .deposits(new HashSet<>())
+                                    .build()
+                    )
+                    .map(tagEntity -> {
+                        depositEntity.addTag(tagEntity);
+                        return tagEntity;
+                    }).toList();
+                    var persistedNewTagEntity = tagRepository.saveAll(newTags);
+                }
                 return "redirect:/deposits";
             }
         } else {
@@ -564,6 +597,8 @@ public class DepositController extends ControllerBase {
                        depositEntity.addPost(p);
                     });
 
+                    // TODO first collect tags already available
+                    // TODO second add new tags
                     // TODO updating tags this way will leave behind lots of trash
                     //      see posts and proceed analogously
                     depositEntity.setTags(depositDto.getTags().stream().map(t -> {

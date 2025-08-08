@@ -12,7 +12,17 @@ import java.util.Set;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "tags")
+@Table(name = "tags",
+       indexes = {  @Index(name = "idxTagBelongs",
+                               unique = false,
+                               columnList = "belongs_to_id"
+                       ),
+                    @Index(name = "idxTagBelongsToAndName",
+                                     unique = true,
+                                     columnList = "belongs_to_id, name"
+                                    )
+                             }
+      )
 @EqualsAndHashCode(exclude = { "deposits"}) // This,
 @ToString(exclude = { "deposits"})
 public class TagEntity {
@@ -27,6 +37,7 @@ public class TagEntity {
     private OwnerEntity belongsTo;
 
     @NotNull
+    @Column(unique = true)
     private String name;
 
     @ManyToMany(mappedBy = "tags", fetch = FetchType.LAZY)

@@ -30,6 +30,7 @@
     <article>
         <header>
             <button
+                    class="cancel_button"
                     aria-label="Close"
                     rel="prev"
                     data-target="modal-example"

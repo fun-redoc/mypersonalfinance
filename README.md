@@ -8,7 +8,8 @@ Login via passkey.
 No passwords should be stored.
 
 ### IN PROGRESS
-+ TagsEntity make already available Tags reusable, currently every new or edited tag is stored
++ Deposit Edit: TagsEntity make already available Tags reusable, currently every new or edited tag is stored
++ Deposit Delete: Check if everathing OK, TagsEntity make already available Tags reusable, currently every new or edited tag is stored
 
 ### DONE
 + register for passkey login with e-mail verification
@@ -34,6 +35,7 @@ No passwords should be stored.
 + savings/deposits edit
 + BUG: Deposit Edit: after removing a posting from deposit, it is imposible to add it anew.
 + BUG: Post Edit: error message on some posts, probably after editing a deposit wir deleteing a post
++ Deposit Add: TagsEntity make already available Tags reusable, currently every new or edited tag is stored
   
 ### TODO
 + check if permission for adding, deleting and editing of posts, deposits, interests, owners is correct (matches the ownershaft of the respective accounts)
@@ -42,6 +44,7 @@ No passwords should be stored.
 + sort/filter accounts
 + sort/filter deposits
 + adjust post selection in deposits having post name
++ in deposits dialog, tag entry should present a list of available tags while typing
 + make tag reusable within an owner group and provide autocompletion of tags whitin deposit new/edit dialog
 + make a productive version
 + adjust comments, create some tech documentation

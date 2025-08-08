@@ -185,16 +185,19 @@ public class PasskyLoginApplication {
 			endDate1.add(Calendar.YEAR,-1);
 
 			var tag1 = tagRepository.save(TagEntity.builder()
+					.belongsTo(ownerRepository.findOwnerByName("group1").orElseThrow())
 					.name("tag 1")
 					.deposits(new HashSet<DepositEntity>())
 					.build());
 			//assertThat(tag1).isNotNull().hasFieldOrPropertyWithValue("id", 1L);
 			var tag2 = tagRepository.save(TagEntity.builder()
+					.belongsTo(ownerRepository.findOwnerByName("group1").orElseThrow())
 					.name("tag 2")
 					.deposits(new HashSet<DepositEntity>())
 					.build());
 			//assertThat(tag2).isNotNull().hasFieldOrPropertyWithValue("id", 2L);
 			var tag3 = tagRepository.save(TagEntity.builder()
+					.belongsTo(ownerRepository.findOwnerByName("group1").orElseThrow())
 					.name("tag 3")
 					.deposits(new HashSet<DepositEntity>())
 					.build());
