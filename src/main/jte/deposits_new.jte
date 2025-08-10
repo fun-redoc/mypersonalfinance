@@ -21,6 +21,7 @@
 @param DepositController.DepositPageStatus viewStatus
 @param ErrorsViewModel vwerrors
 
+
 <dialog id="keyEntry" >
     <%--        <article th:replace="settings.html::enckey(false)"></article> --%>
     @template.settings-enckey(localizer = localizer, name = username, enabled = true, vwerrors = vwerrors)
@@ -52,13 +53,15 @@
                 @endif
         </header>
 
+        @template.generalErrors(localizer = localizer, vwerrors = vwerrors)
+
         <form id="formAddDeposits"
               action="${formAction}"
               method="post">
+
             @if(csrf != null)
                 <input type="hidden" name="${csrf.getParameterName()}" value="${csrf.getToken()}"/>
             @endif
-
 
             <label for="tags">${localizer.localize("new_deposit.tags")}</label>
             <fieldset role="group" id="tags" class="tags">

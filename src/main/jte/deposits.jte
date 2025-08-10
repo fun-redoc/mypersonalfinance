@@ -36,7 +36,7 @@
                             allInterestTypes = allInterestTypes,
                             viewStatus = viewStatus,
                             vwerrors = vwerrors)
-    @template.generalErrors(vwerrors = vwerrors)
+    @template.generalErrors(localizer = localizer, vwerrors = vwerrors)
         <div role="group">
             <h2>${localizer.localize("deposits.my_deposits")}</h2>
             <div class="centered">

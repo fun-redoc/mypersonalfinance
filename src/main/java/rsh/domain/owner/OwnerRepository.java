@@ -33,7 +33,7 @@ public interface OwnerRepository extends JpaRepository<OwnerEntity, Long> {
 
     @Query("""
             select o from OwnerEntity o
-            where :u in elements(o.users)
+            where :first in elements(o.users)
             """)
-    List<OwnerEntity> findOwnerByUser(@Param("u") UserEntity userEntity);
+    List<OwnerEntity> findOwnerByUser(@Param("first") UserEntity userEntity);
 }

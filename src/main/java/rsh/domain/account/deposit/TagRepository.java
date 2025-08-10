@@ -36,4 +36,12 @@ public interface TagRepository extends JpaRepository<TagEntity, Long> {
     List<TagDto> finaAllTagsByOwnerUser(@Param("uid") String userId);
     List<TagEntity> findAllByBelongsToAndName(OwnerEntity belongsTo, String Name);
     List<TagEntity> findAllByBelongsTo(OwnerEntity belongsTo);
+    //List<TagEntity> findByBelongsToAndName(OwnerEntity belongsTo, Iterable<String> names);
+    @Query("""
+            select t
+            from TagEntity t
+            where t.name in :ns
+              and t.belongsTo = :o
+            """)
+    List<TagEntity> findAllByBelongsToAndNames(@Param("o") OwnerEntity o, @Param("ns") Iterable<String> names);
 }

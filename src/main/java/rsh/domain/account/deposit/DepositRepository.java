@@ -59,7 +59,7 @@ public interface DepositRepository extends JpaRepository<DepositEntity, Long> {
     //        from DepositEntity d
     //            inner join OwnerEntity o on o = d.belongsTo
     //            left join fetch d.tags
-    //        where :u in elements(o.users)
+    //        where :first in elements(o.users)
     //        """)
     @Query("""
             select new rsh.domain.account.deposit.DepositListDto(
@@ -76,9 +76,9 @@ public interface DepositRepository extends JpaRepository<DepositEntity, Long> {
                             )
             from DepositEntity d
                 inner join OwnerEntity o on o = d.belongsTo
-            where :u in elements(o.users)
+            where :first in elements(o.users)
             """)
-    List<DepositListDto> findDepositsForUser(@Param("u") UserEntity userEntity);
+    List<DepositListDto> findDepositsForUser(@Param("first") UserEntity userEntity);
 
     @Query("""
             select new rsh.domain.account.deposit.DepositRepository$TagDto(t.id, t.name)

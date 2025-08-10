@@ -25,10 +25,10 @@ public interface AccountRepository extends JpaRepository<AccountEntity, Long> {
                     null,null)
                 from AccountEntity a
                     inner join a.belongsTo o
-                    inner join o.users u
-                where u = :u
+                    inner join o.users first
+                where first = :first
             """)
-    List<AccountsBaseData> findBaseByUser(@Param("u") UserEntity userEntity);
+    List<AccountsBaseData> findBaseByUser(@Param("first") UserEntity userEntity);
 
     @Query("""
             select  new rsh.domain.account.AccountsBaseData(
@@ -44,18 +44,18 @@ public interface AccountRepository extends JpaRepository<AccountEntity, Long> {
                     null,null)
                 from AccountEntity a
                     inner join a.belongsTo o
-                    inner join o.users u
-                where u.id = :uid
+                    inner join o.users first
+                where first.id = :uid
             """)
     List<AccountsBaseData> findBaseByUserId(@Param("uid") String uid);
 
     @Query("""
             select a from AccountEntity a
                 inner join a.belongsTo o
-                inner join o.users u
-                where u = :u
+                inner join o.users first
+                where first = :first
             """)
-    List<AccountEntity> findByUser(@Param("u")UserEntity userEntity);
+    List<AccountEntity> findByUser(@Param("first")UserEntity userEntity);
 
     @Query("SELECT a FROM AccountEntity a LEFT JOIN FETCH a.belongsTo b LEFT JOIN FETCH b.users")
     List<AccountEntity> findWithOwnerWithUserBy();
@@ -87,10 +87,10 @@ public interface AccountRepository extends JpaRepository<AccountEntity, Long> {
                      (COALESCE((select sum(amount) from PostEntity where fromAccount = a),0)))
                 from AccountEntity a
                     inner join a.belongsTo o
-                    inner join o.users u
-                where u = :u
+                    inner join o.users first
+                where first = :first
             """)
-    List<AccountsBaseData> findBaseWithBalanceByUser(@Param("u") UserEntity userEntity);
+    List<AccountsBaseData> findBaseWithBalanceByUser(@Param("first") UserEntity userEntity);
 
     @Query("""
             select d from DepositEntity d

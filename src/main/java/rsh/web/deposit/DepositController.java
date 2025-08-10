@@ -1,7 +1,6 @@
 package rsh.web.deposit;
 
 import jakarta.validation.Valid;
-import jakarta.websocket.server.PathParam;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -9,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.stereotype.Controller;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionTemplate;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
@@ -17,14 +17,17 @@ import rsh.domain.account.deposit.*;
 import rsh.domain.account.deposit.interest.FlatInterestEntity;
 import rsh.domain.account.deposit.interest.FlatPlusBonusAtEndInterestEntity;
 import rsh.domain.account.deposit.interest.InterestRepository;
+import rsh.domain.account.post.PostEntity;
 import rsh.domain.account.post.PostRepository;
 import rsh.user.UserEntity;
 import rsh.web.base.ErrorsViewModel;
 import rsh.web.account.ControllerBase;
+import rsh.web.base.Pair;
 
 import java.math.BigDecimal;
 import java.util.*;
         import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Controller
 public class DepositController extends ControllerBase {
@@ -41,6 +44,9 @@ public class DepositController extends ControllerBase {
         boolean dialogOpen;
         DialogMode dialogMode;
     }
+
+    @Autowired
+    TransactionTemplate transactionTemplate;
 
     final DepositRepository depositRepository;
     final PostRepository postRepository;
@@ -468,7 +474,7 @@ public class DepositController extends ControllerBase {
     }
 
     @PostMapping("/deposits/edit/{editId}")
-    @Transactional
+//    @Transactional I manually control the Trx here
     @Modifying
     public String postEditDeposit(@PathVariable("editId") final Long editId,
                                   @Valid @ModelAttribute("deposit") final DepositDto depositDto,
@@ -481,32 +487,34 @@ public class DepositController extends ControllerBase {
             viewStatus.setDialogMode(DepositPageStatus.DialogMode.EDIT);
             vwerrors.getMessages().add("errors.message.generic");
             return "deposits";
-        }
-        return depositDtoToEntity(editId, depositDto)
-                .flatMap(depositEntity -> {
-                    if(depositEntity.getBelongsTo()
-                            .getUsers().stream()
-                            .map(UserEntity::getId)
-                            .noneMatch(uid->uid.equals(getUser().getId()))){
-                        System.err.println(String.format("editId %d doesn't belong to user %s is no entity.",editId, getUser().getId()));
-                        return Optional.empty();
-                    } else {
-                        return Optional.of(depositEntity);
-                    }
-                })
+       }
+        // TODO check all input data from depositDto first, don't trust Entity Annotations
+       return transactionTemplate.execute(status -> {
+           try {
+               var maybeDepositEntity = depositDtoToEntity(editId, depositDto);
+               return maybeDepositEntity
                 .map(depositEntity -> {
-                    depositRepository.save(depositEntity);
-                    viewStatus.setDialogOpen(false);
-                    viewStatus.setDialogMode(DepositPageStatus.DialogMode.CLOSED);
-                  return "redirect:/deposits";
-                }).orElseGet(()-> {
-                    System.err.println(String.format("editId %d is no entity.",editId));
-                    viewStatus.setDialogOpen(true);
-                    viewStatus.setDialogMode(DepositPageStatus.DialogMode.EDIT);
-                    vwerrors.getMessages().add("errors.message.generic");
-                    return "deposits";
-                });
-
+                       viewStatus.setDialogOpen(false);
+                       viewStatus.setDialogMode(DepositPageStatus.DialogMode.CLOSED);
+                       //status.flush();
+                       return "redirect:/deposits";
+                   }).orElseGet(()-> {
+                       System.err.println(String.format("editId %d is no entity.",editId));
+                       viewStatus.setDialogOpen(true);
+                       viewStatus.setDialogMode(DepositPageStatus.DialogMode.EDIT);
+                       vwerrors.getMessages().add("errors.message.generic");
+                       return "deposits";
+                   });
+           } catch (Exception e) {
+               // TODO Rollback
+               System.err.println(String.format("Error happened while persisting edited deposit %d is no entity. Rollback issued. Cause:\n %s",editId, e));
+               viewStatus.setDialogOpen(false);
+               viewStatus.setDialogMode(DepositPageStatus.DialogMode.CLOSED);
+               vwerrors.getMessages().add("errors.message.generic");
+               status.setRollbackOnly();
+               return "deposits";
+           }
+       });
     }
 
     private List<DepositPostingDto> getFreePostingsFromDb(Long accountId) {
@@ -544,73 +552,162 @@ public class DepositController extends ControllerBase {
             return Optional.empty();
         }
         var entityId = depositId == null ? depositDto.getId() : depositId;
-        return depositRepository.findById(entityId)
-                .flatMap(depositEntity -> {
-                    if(!depositEntity.getAccount().getId().equals(depositDto.getAccountId())) {
-                        return accountRepository.findById(depositDto.getAccountId())
-                                .map(accountEntity -> {
-                                    depositEntity.setAccount(accountEntity);
-                                    return depositEntity;
+        try {
+            return depositRepository.findById(entityId)
+                    .flatMap(depositEntity -> {
+                        // check if user is one of the owners
+                        if (depositEntity.getBelongsTo()
+                                .getUsers().stream()
+                                .map(UserEntity::getId)
+                                .noneMatch(uid -> uid.equals(getUser().getId()))) {
+                            System.err.println(String.format("editId %d doesn't belong to user %s is no entity.", depositId, getUser().getId()));
+                            return Optional.empty();
+                        } else {
+                            return Optional.of(depositEntity);
+                        }
+                    })
+                    .flatMap(depositEntity -> {
+                        // check if the account in the user entry matches the entity
+                        // return updated deposit and a flag indicating the account change
+                        if (!depositEntity.getAccount().getId().equals(depositDto.getAccountId())) {
+                            // maybe account has changed
+                            return accountRepository.findById(depositDto.getAccountId())
+                                    .flatMap(accountEntity -> {
+                                        if (!accountEntity.getBelongsTo().getUsers().stream().map(UserEntity::getId).toList().contains(getUser().getId())) {
+                                            System.err.println(String.format("given account %d for deposit %d does not belong to user %s", accountEntity.getId(), depositId, getUser().getId()));
+                                            return Optional.empty();
+                                        } else {
+                                            depositEntity.setAccount(accountEntity);
+                                            return Optional.of(new Pair<DepositEntity, Boolean>(depositEntity, true));
+                                        }
+                                    }).or(() -> {
+                                        System.err.println(String.format("given acoount id %d for deposit %d does not exist in database", depositDto.getAccountId(), depositId));
+                                        return Optional.empty();
+                                    });
+                        } else {
+                            return Optional.of(new Pair<>(depositEntity, false));
+                        }
+                    })
+                    .flatMap(depositEntityWithAcccountChangeFlag -> {
+                        var depositEntity = depositEntityWithAcccountChangeFlag.first();
+                        var accountChangeFlag = depositEntityWithAcccountChangeFlag.second();
+                        // adjust interest and other flat properties
+                        var interest = switch (depositDto.getInterestType()) {
+                            case ZERO -> new InterestEntity();
+                            case FLAT ->
+                                    new FlatInterestEntity(depositDto.getBegin(), depositDto.getFinish(), depositDto.getFlatInterest().getAnnualRate());
+                            case FLAT_END_BONUS ->
+                                    new FlatPlusBonusAtEndInterestEntity(depositDto.getBegin(), depositDto.getFinish(), depositDto.getBonusInterest().getAnnualRate(), depositDto.getBonusInterest().getFinalBonusRate());
+                            default -> throw new RuntimeException("unexpected.");
+                        };
+                        if (!depositEntity.getInterest().sameAs(interest)) {
+                            depositEntity.setInterest(interest);
+                        }
+                        if (!depositEntity.getName().equals(depositDto.getName())) {
+                            depositEntity.setName(depositDto.getName());
+                        }
+                        if (!depositEntity.getBegin().equals(depositDto.getBegin())) {
+                            depositEntity.setBegin(depositDto.getBegin());
+                        }
+                        if (!depositEntity.getDue().equals(depositDto.getFinish())) {
+                            depositEntity.setDue(depositDto.getFinish());
+                        }
+                        if(accountChangeFlag) {
+                            // account changed, unlink all postings
+                            depositEntity.getPosts().forEach(postEntity -> {
+                               postEntity.setDeposit(null);
+                            });
+                            depositEntity.getPosts().clear();
+                        }
+                        var allOldPosts = depositEntity.getPosts();
+                        Stream<PostEntity> deletedPosts = null;
+                        if(depositDto.getAssignedPostings() != null && depositDto.getAssignedPostings().size() > 0) {
+                            deletedPosts = allOldPosts.stream().filter(postEntity -> {
+                                return depositDto.getAssignedPostings().stream()
+                                        .map(DepositPostingDto::getId)
+                                        .noneMatch(pid -> postEntity.getId().compareTo(pid) == 0);
+                            });
+                        }
+                        if(depositDto.getAssignedPostings() != null && depositDto.getAssignedPostings().size() > 0) {
+                            var addedPostIds = depositDto.getAssignedPostings().stream()
+                                    .map(DepositPostingDto::getId)
+                                    .filter(pid -> allOldPosts.stream().noneMatch(p -> p.getId().compareTo(pid) == 0))
+                                    .toList();
+                        }
+                        if(deletedPosts != null) {
+                            deletedPosts.forEach(p -> {
+                                depositEntity.removePost(p);
+                            });
+                        }
+                        if(depositDto.getAssignedPostings() != null && depositDto.getAssignedPostings().size() > 0) {
+                            postRepository.findAllById(
+                                        depositDto.getAssignedPostings().stream()
+                                                .map(dto -> {
+                                                    return dto.getId();
+                                                }).collect(Collectors.toUnmodifiableList())
+                                ).forEach(p -> {
+                                    depositEntity.addPost(p);
                                 });
-                    } else {
-                        return Optional.of(depositEntity);
-                    }
-                })
-                .flatMap(depositEntity-> {
-                    var interest = switch (depositDto.getInterestType()) {
-                        case ZERO -> new InterestEntity();
-                        case FLAT -> new FlatInterestEntity(depositDto.getBegin(), depositDto.getFinish(), depositDto.getFlatInterest().getAnnualRate());
-                        case FLAT_END_BONUS -> new FlatPlusBonusAtEndInterestEntity(depositDto.getBegin(), depositDto.getFinish(), depositDto.getBonusInterest().getAnnualRate(), depositDto.getBonusInterest().getFinalBonusRate());
-                        default -> throw new RuntimeException("unexpected.");
-                    };
-                    if(!depositEntity.getInterest().sameAs(interest)) {
-                        depositEntity.setInterest(interest);
-                    }
-                    if(!depositEntity.getName().equals(depositDto.getName())) {
-                        depositEntity.setName(depositDto.getName());
-                    }
-                    if(!depositEntity.getBegin().equals(depositDto.getBegin())) {
-                        depositEntity.setBegin(depositDto.getBegin());
-                    }
-                    if(!depositEntity.getDue().equals(depositDto.getFinish())) {
-                        depositEntity.setDue(depositDto.getFinish());
-                    }
-                    var allOldPosts = depositEntity.getPosts();
-                    var deletedPosts = allOldPosts.stream().filter(postEntity -> {
-                        return depositDto.getAssignedPostings().stream()
-                                .map(DepositPostingDto::getId)
-                                .noneMatch(pid->postEntity.getId().compareTo(pid) == 0);
-                    });
-                    var addedPostIds = depositDto.getAssignedPostings().stream()
-                            .map(DepositPostingDto::getId)
-                            .filter(pid -> allOldPosts.stream().noneMatch(p->p.getId().compareTo(pid) == 0))
-                            .toList();
-                    deletedPosts.forEach(p -> {
-                       depositEntity.removePost(p);
-                    });
-                    postRepository.findAllById(
-                                depositDto.getAssignedPostings().stream()
-                                .map(dto -> {
-                                    return dto.getId();
-                                }).collect(Collectors.toUnmodifiableList())
-                    ).forEach(p -> {
-                       depositEntity.addPost(p);
-                    });
+                        }
 
-                    // TODO first collect tags already available
-                    // TODO second add new tags
-                    // TODO updating tags this way will leave behind lots of trash
-                    //      see posts and proceed analogously
-                    depositEntity.setTags(depositDto.getTags().stream().map(t -> {
-                        return TagEntity.builder()
-                                .name(t.getName())
-                                .id(t.getId())
-                                .build();
-                    }).collect(Collectors.toSet()));
-                    return Optional.of(depositEntity);
-                }).or(() ->{
-                  System.err.println(String.format("DepositEntity not found for id: %d", entityId));
-                  return Optional.empty();
-                });
+                        // adjust tags, reuse tags already persisted for this owner
+                        // first collect tags already available
+                        if (depositDto.getTags() != null) {
+                            var assignedTags = depositEntity.getTags();
+                            var assignedTagNames = assignedTags.stream()
+                                    .map(tagEntity -> tagEntity.getName()).collect(Collectors.toSet());
+                            var editedTagNames = depositDto.getTags().stream().map(dto -> dto.getName()).toList();
+                            // tags for this deposit are possibly edited
+                            var superFluousTags = assignedTags.stream()
+                                    .filter(tagEntity -> !editedTagNames.contains(tagEntity.getName()))
+                                    .toList();
+                            // second add new tags
+                            var unassignedTagNames = editedTagNames.stream()
+                                    .filter(name -> !assignedTagNames.contains(name))
+                                    .toList();
+                            var unassignedPersistedTags = tagRepository.findAllByBelongsToAndNames(depositEntity.getBelongsTo(), unassignedTagNames);
+                            var unassignedNotPersistedTags = unassignedTagNames.stream()
+                                    .filter(name -> unassignedPersistedTags.stream()
+                                            .map(tagEntity -> tagEntity.getName())
+                                            .noneMatch(persistedName -> persistedName.equals(name)))
+                                    .map(name -> {
+                                        return TagEntity.builder()
+                                                .name(name)
+                                                .belongsTo(depositEntity.getBelongsTo())
+                                                .deposits(new HashSet<>())
+                                                .build();
+                                    })
+                                    .toList();
+                            superFluousTags.forEach(tagEntity -> {
+                                depositEntity.removeTag(tagEntity);
+                            });
+                            var persistedDepositEntity = depositRepository.save(depositEntity);
+                            unassignedPersistedTags.forEach(tagEntity -> {
+                                persistedDepositEntity.addTag(tagEntity);
+                            });
+                            unassignedNotPersistedTags.forEach(tagEntity -> {
+                                persistedDepositEntity.addTag(tagEntity);
+                            });
+                            var newlyPersistedTags = tagRepository.saveAll(unassignedNotPersistedTags);
+                            return Optional.of(depositRepository.save(depositEntity));
+                        } else {
+                            // no tags, maybe all are discarded
+                            if(depositEntity.getTags() != null && depositEntity.getTags().size() > 0){
+                                depositEntity.getTags().forEach(tagEntity -> {
+                                   tagEntity.getDeposits().remove(depositEntity);
+                                });
+                                depositEntity.getTags().clear();
+                            }
+                            return Optional.of(depositRepository.save(depositEntity));
+                        }
+                    }).or(() -> {
+                        System.err.println(String.format("DepositEntity not found for id: %d", entityId));
+                        return Optional.empty();
+                    });
+        } catch (Exception e) {
+            System.err.printf("%s\n", e);
+            e.printStackTrace(System.err);
+            throw new RuntimeException(e);
+        }
     }
 }
