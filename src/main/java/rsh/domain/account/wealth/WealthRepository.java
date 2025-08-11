@@ -11,6 +11,16 @@ import java.util.Optional;
 
 public interface WealthRepository extends JpaRepository<WealthEntity, Long> {
     @Query("""
+            select w
+            from WealthEntity w
+            left join w.belongsTo o
+            where 
+                :uid in elements(o.users)
+            and :id = w.id
+            """)
+    Optional<WealthEntity> findByIdForUser(@Param("id") Long id, @Param("uid") String uid);
+
+    @Query("""
             select p from PurchaseEntity p
             where p.wealthEntity = :w
             """)
@@ -23,4 +33,23 @@ public interface WealthRepository extends JpaRepository<WealthEntity, Long> {
             where wealthEntity = :w
             """)
     Optional<BigDecimal> wealthCostOfPurchase(@Param("w") WealthEntity wealthEntity);
+    
+    @Query("""
+            select new  com.rsh.wealth.domain.wealth.WealthSummaryDto(
+                w.id,
+                w.symbol,
+                w.name,
+                sum(p.units),
+                sum(p.fee),
+                avg(p.pricePerUnit),
+                count(p.pricePerUnit),
+                min(date),
+                max(date))
+            from WealthEntity as w
+                left join w.belongsTo o
+                left join PurchaseEntity as p on p.wealthEntity.id = w.id
+            where :userId in elements(o.users)
+            group by w.id
+            """)
+    List<WealthSummaryDto> findWealthSummaryForUser(String userId);
 }
